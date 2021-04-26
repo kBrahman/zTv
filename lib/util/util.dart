@@ -1,0 +1,39 @@
+const ANY_LANGUAGE = 'Any language';
+const ALBANIAN = 'Albanian';
+const ARABIC = "Arabic";
+const BULGARIAN = 'Bulgarian';
+const CHINESE = 'Chinese';
+const DUTCH = 'Dutch';
+const ENGLISH = 'English';
+const FRENCH = 'French';
+const GERMAN = 'German';
+const HEBREW = 'Hebrew';
+const HINDI = 'Hindi';
+const HUNGARIAN = 'Hungarian';
+const ITALIAN = 'Italian';
+const MALAYALAM = 'Malayalam';
+const PERSIAN = 'Persian';
+const PORTUGUESE = 'Portuguese';
+const PUNJABI = 'Punjabi';
+const ROMANIAN = 'Romanian';
+const RUSSIAN = 'Russian';
+const SERBIAN = 'Serbian';
+const SLOVAK = 'Slovak';
+const SPANISH = 'Spanish';
+const TAMIL = 'Tamil';
+const TURKISH = 'Turkish';
+const UKRAINIAN = 'Ukrainian';
+const URDU = 'Urdu';
+
+const ANY_CATEGORY = 'Any category';
+const SPORT = 'Sport';
+const NEWS = 'News';
+const MOVIE = 'Movie';
+const ADULT = 'Adult';
+const KIDS = 'Kids';
+const MUSIC = 'Music';
+
+const DB_NAME = 'ztv.db';
+const TABLE_PLAYLIST = 'playlist';
+
+log(String tag, String msg) => print('$tag:$msg');
