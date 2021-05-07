@@ -4,7 +4,7 @@ import 'package:ztv/util/util.dart';
 
 class Channel extends StatelessWidget {
   static const TAG = 'Channel';
-  final url;
+  final String url;
   final String title;
   var languages = [ANY_LANGUAGE];
   var category = ANY_CATEGORY;

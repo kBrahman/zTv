@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +40,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const TAG = '_HomePageState';
+
   var _link;
   var _dataHolder;
   var _offset = 0.0;
@@ -57,7 +61,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     final dCC = DataConnectionChecker()
       ..onStatusChange.listen((event) {
-        print(event);
+        log(TAG, event.toString());
         _connectedToInet = event == DataConnectionStatus.connected;
       });
     dCC.hasConnection.then((value) => _connectedToInet = value);
@@ -65,12 +69,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _play() {
+    log(TAG, '_play is connected to inet=>$_connectedToInet');
     _availableLanguages = [ANY_LANGUAGE];
     _availableCategories = [ANY_CATEGORY];
     if (_link == null || _link is List) _link = _txtFieldTxt;
     if (_link == null || _link.trim().isEmpty) return;
     print('play=>$_link');
-    if (_connectedToInet && _link.endsWith('=m3u') || _link.contains('download.php?id') || _link.endsWith('.m3u'))
+    if (_connectedToInet && (_link.endsWith('=m3u') || _link.contains('download.php?id') || _link.endsWith('.m3u')))
       setState(() {
         uiState = UIState.PLAYLIST;
         stateStack.add(UIState.PLAYLIST);
@@ -99,7 +104,7 @@ class _HomePageState extends State<HomePage> {
     this._title = title;
     this._availableLanguages = channels;
     this._availableCategories = categories;
-    this._hasFilter=hasFilter;
+    this._hasFilter = hasFilter;
     _dataHolder = data;
     _offset = offset;
     _query = query;

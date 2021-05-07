@@ -102,11 +102,15 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
               ? IconButton(
                   icon: Icon(Icons.filter_list, color: Colors.white),
                   onPressed: () => dialog(
-                      context,
-                      (lan, cat) => setState(() {
-                            widget._language = lan;
-                            widget._category = cat;
-                          })))
+                          context,
+                          (lan, cat) => setState(() {
+                                widget._language = lan;
+                                widget._category = cat;
+                              }), () {
+                        log(TAG, 'clear');
+                        widget._language = ANY_CATEGORY;
+                        widget._category = ANY_CATEGORY;
+                      }))
               : SizedBox.shrink(),
           IconButton(
               icon: Icon(Icons.save, color: Colors.white),
@@ -149,7 +153,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     } else if (link.startsWith('/')) {
       return Future.value(fileToPlaylist(link));
     }
-    return http.get(widget._linkOrList).then((value) {
+    return http.get(Uri.parse(widget._linkOrList)).then((value) {
       if (value.statusCode == 404) {
         linkBroken = true;
         return Future.value(null);
@@ -242,11 +246,11 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     });
   }
 
-  void dialog(ctx, submit) => showDialog(
+  void dialog(ctx, submit, clear) => showDialog(
       context: ctx,
       builder: (_) {
         return ZtvDialog(
-            submit, widget._language, widget._category, widget._availableLanguages, widget._availableCategories);
+            submit, clear, widget._language, widget._category, widget._availableLanguages, widget._availableCategories);
       });
 
   setChProps(List<String> data, Channel channel) {
@@ -307,12 +311,13 @@ class SaveDialog extends StatelessWidget {
 
 class ZtvDialog extends StatefulWidget {
   final submit;
+  final clear;
   var language;
   var category;
   final List<String> availableLanguages;
   final availableCategories;
 
-  ZtvDialog(this.submit, this.language, this.category, this.availableLanguages, this.availableCategories);
+  ZtvDialog(this.submit, this.clear, this.language, this.category, this.availableLanguages, this.availableCategories);
 
   @override
   State<StatefulWidget> createState() => DialogState();
@@ -328,7 +333,15 @@ class DialogState extends State<ZtvDialog> {
     return AlertDialog(
         title: Text('Filter'),
         actions: [
-          TextButton(onPressed: () => widget.submit(ANY_LANGUAGE, ANY_CATEGORY), child: Text('Clear')),
+          TextButton(
+              onPressed: () {
+                setState(() {
+                  widget.language = ANY_LANGUAGE;
+                  widget.category = ANY_CATEGORY;
+                  widget.clear();
+                });
+              },
+              child: Text('Clear')),
           TextButton(
               onPressed: () {
                 widget.submit(lanItem.dropdownValue, catItem.dropdownValue);
