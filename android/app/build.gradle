@@ -56,8 +56,8 @@ android {
 
     buildTypes {
         release {
+            shrinkResources true
             minifyEnabled true
-            useProguard true
             ndk {
                 debugSymbolLevel 'FULL'
             }
