@@ -51,7 +51,7 @@ class _HomePageState extends State<HomePage> {
   var _language = ANY_LANGUAGE;
   var _category = ANY_CATEGORY;
   var uiState = UIState.MAIN;
-  var _title;
+  var _title='Player';
   final stateStack = [UIState.MAIN];
   var _availableLanguages = [ANY_LANGUAGE];
   var _availableCategories = [ANY_CATEGORY];
