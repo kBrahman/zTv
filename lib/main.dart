@@ -3,10 +3,14 @@ import 'dart:developer';
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/widget/my_playlists.dart';
 import 'package:ztv/widget/player.dart';
 import 'package:ztv/widget/playlist_widget.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import 'l10n/locale.dart';
 
 var colorCodes = {
   50: Color.fromRGBO(247, 0, 15, .1),
@@ -23,6 +27,15 @@ class Ztv extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        AppLocalizations.delegate
+      ],
+      supportedLocales: LOCALES,
+      localeResolutionCallback: (locale, supportedLocales) => supportedLocales
+          .firstWhere((element) => element.languageCode == locale?.languageCode, orElse: () => supportedLocales.first),
       theme: ThemeData(
         primarySwatch: MaterialColor(0XFFF7000F, colorCodes),
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -51,7 +64,7 @@ class _HomePageState extends State<HomePage> {
   var _language = ANY_LANGUAGE;
   var _category = ANY_CATEGORY;
   var uiState = UIState.MAIN;
-  var _title='Player';
+  var _title = 'Player';
   final stateStack = [UIState.MAIN];
   var _availableLanguages = [ANY_LANGUAGE];
   var _availableCategories = [ANY_CATEGORY];
@@ -69,7 +82,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _play() {
-    log(TAG, '_play is connected to inet=>$_connectedToInet');
     _availableLanguages = [ANY_LANGUAGE];
     _availableCategories = [ANY_CATEGORY];
     if (_link == null || _link is List) _link = _txtFieldTxt;
@@ -86,7 +98,7 @@ class _HomePageState extends State<HomePage> {
         stateStack.add(UIState.PLAYER);
       });
     else {
-      final snackBar = SnackBar(content: Text('No internet access'), duration: Duration(seconds: 1));
+      final snackBar = SnackBar(content: Text(AppLocalizations.of(context).no_inet), duration: Duration(seconds: 1));
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
     _txtFieldTxt = _link;
@@ -97,12 +109,12 @@ class _HomePageState extends State<HomePage> {
     return WillPopScope(onWillPop: willPop, child: getChild());
   }
 
-  void onTap(urlOrChannel, List<Widget> data, double offset, String query, language, category, title, channels,
-      categories, hasFilter) {
+  void onTap(urlOrChannel, List<Widget> data, double offset, String query, language, category, title, langs, categories,
+      hasFilter) {
     this._language = language;
     this._category = category;
     this._title = title;
-    this._availableLanguages = channels;
+    this._availableLanguages = langs;
     this._availableCategories = categories;
     this._hasFilter = hasFilter;
     _dataHolder = data;
@@ -138,8 +150,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _browse() async {
-    FilePickerResult result =
-        await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['flac', 'mp4', 'm3u', 'mp3']);
+    FilePickerResult result = await FilePicker.platform
+        .pickFiles(type: FileType.custom, allowedExtensions: ['flac', 'mp4', 'm3u', 'mp3', 'm3u']);
     if (result != null)
       setState(() {
         _txtFieldTxt = result.files.single.path;
@@ -172,14 +184,14 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  'Paste your link here',
+                  AppLocalizations.of(context).link,
                   style: Theme.of(context).textTheme.headline5,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(left: 16.0, right: 16.0),
                   child: TextField(
                     onChanged: (String txt) => _link = txt,
-                    decoration: InputDecoration(hintText: 'Video URL or IPTV playlist URL'),
+                    decoration: InputDecoration(hintText: AppLocalizations.of(context).link_val),
                     controller: TextEditingController(text: _txtFieldTxt),
                   ),
                 ),

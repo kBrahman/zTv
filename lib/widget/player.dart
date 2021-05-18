@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:video_player/video_player.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/widget/channel.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'music_player.dart';
 
@@ -101,7 +102,7 @@ class _PlayerState extends State<Player> {
                   } else if (snapshot.hasError)
                     return Center(
                       heightFactor: 1,
-                      child: Text('This channel is offline now. Come later please', textScaleFactor: 1.25),
+                      child: Text(AppLocalizations.of(context).ch_offline, textScaleFactor: 1.25),
                     );
                   _controller.play();
                   final size = _controller.value.size;
@@ -152,7 +153,6 @@ class _PlayerState extends State<Player> {
   }
 
   void repeatedCheck(VlcPlayerController ctr) => Future.delayed(Duration(seconds: 1), ctr.isPlaying).then((isPlaying) {
-        log(TAG, 'is playing=>$isPlaying');
         if (isPlaying) {
           ctr.value.size.aspectRatio;
           setState(() => this.isPlaying = isPlaying);

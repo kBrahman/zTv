@@ -1,0 +1,18 @@
+{
+  "link_val": "Video URL or IPTV playlist URL",
+  "@link_val": {},
+  "link": "Paste your link here",
+  "@link": {},
+  "no_inet": "No internet access",
+  "@no_inet": {},
+  "audio": "This is an audio file!",
+  "@audio": {},
+  "my_playlists": "My playlists",
+  "@my_playlists": {},
+  "ch_offline": "This channel is offline now. Come later please",
+  "@ch_offline": {},
+  "broken_link": "Link is broken!",
+  "@broken_link": {},
+  "save_playlist": "Save playlist",
+  "@save_playlist": {}
+}

@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MusicPlayer extends StatefulWidget {
   final VideoPlayerController _controller;
@@ -29,7 +30,7 @@ class MusicPlayerState extends State<MusicPlayer> {
         children: [
           Center(
               child: Text(
-            'This is an audio file!',
+            AppLocalizations.of(context).audio,
             style: TextStyle(fontSize: 24),
           )),
           Padding(

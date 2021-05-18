@@ -4,6 +4,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:ztv/model/playlist.dart';
 import 'package:ztv/util/util.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MyPlaylists extends StatefulWidget {
   final onPlaylistTap;
@@ -38,7 +39,7 @@ class MyPlaylistsState extends State<MyPlaylists> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('My playlists')),
+        appBar: AppBar(title: Text(AppLocalizations.of(context).my_playlists)),
         body: FutureBuilder(
             future: future,
             builder: (ctx, snap) {
@@ -51,7 +52,7 @@ class MyPlaylistsState extends State<MyPlaylists> {
                             (list).length,
                             (i) => GestureDetector(
                                 onTap: () => widget.onPlaylistTap(list[i].link),
-                                behavior:HitTestBehavior.opaque ,
+                                behavior: HitTestBehavior.opaque,
                                 child: Row(
                                   children: [
                                     Padding(

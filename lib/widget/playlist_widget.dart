@@ -9,6 +9,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:ztv/model/playlist.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/widget/channel.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PlaylistWidget extends StatefulWidget {
   var _linkOrList;
@@ -107,7 +108,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                                 widget._language = lan;
                                 widget._category = cat;
                               }), () {
-                        log(TAG, 'clear');
                         widget._language = ANY_CATEGORY;
                         widget._category = ANY_CATEGORY;
                       }))
@@ -126,7 +126,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return linkBroken
-                ? Center(child: Text('Link is broken!', style: TextStyle(fontSize: 25)))
+                ? Center(child: Text(AppLocalizations.of(context).broken_link, style: TextStyle(fontSize: 25)))
                 : GridView.count(
                     crossAxisCount: 3,
                     children: snapshot.data,
@@ -187,7 +187,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
           channel.languages.add(FRENCH);
         } else if (title.contains(RegExp('\\|AR\\|'))) {
           channel.languages.add(ARABIC);
-        } else if (title.contains(RegExp('USA|5USA|eng'))) {
+        } else if (title.contains(RegExp('USA|5USA'))) {
           channel.languages.add(ENGLISH);
         } else if (title.contains('NL')) {
           channel.languages.add(DUTCH);
@@ -279,7 +279,7 @@ class SaveDialog extends StatelessWidget {
     final now = DateTime.now();
     var name = 'Playlist_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}';
     return AlertDialog(
-      title: Text('Save playlist'),
+      title: Text(AppLocalizations.of(context).save_playlist),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -350,7 +350,10 @@ class DialogState extends State<ZtvDialog> {
               child: Text('OK'))
         ],
         content: Row(
-          children: [lanItem, SizedBox(width: 8), catItem],
+          children: [
+            Padding(padding: EdgeInsets.only(right: 2), child: lanItem),
+            Padding(padding: EdgeInsets.only(left: 2), child: catItem)
+          ],
         ));
   }
 }

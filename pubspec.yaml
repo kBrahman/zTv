@@ -19,6 +19,8 @@ dependencies:
   sqflite: ^2.0.0+3
   path: ^1.8.0
   flutter_vlc_player: ^6.0.2
+  flutter_localizations:
+    sdk: flutter
 
 flutter_icons:
   image_path: "icon/ztv.jpg"
@@ -37,6 +39,7 @@ dev_dependencies:
 flutter:
   assets:
     - icon/ztv.jpg
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
