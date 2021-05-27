@@ -62,6 +62,7 @@ class _PlayerState extends State<Player> {
       appBar: fullscreen
           ? null
           : AppBar(
+              leading: BackButton(),
               title: Text(isAudioFile ? getName(widget.linkOrChannel) : widget.title),
               actions: [
                 isAudioFile

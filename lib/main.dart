@@ -1,14 +1,13 @@
-import 'dart:developer';
-
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/widget/my_playlists.dart';
 import 'package:ztv/widget/player.dart';
 import 'package:ztv/widget/playlist_widget.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'l10n/locale.dart';
 
@@ -17,36 +16,46 @@ var colorCodes = {
   for (var i = 100; i < 1000; i += 100) i: Color.fromRGBO(247, 0, 15, (i + 100) / 1000)
 };
 
-void main() {
-  runApp(const Ztv());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  String data = await rootBundle.loadString('assets/local.properties');
+  var iterable = data.split('\n').where((element) => !element.startsWith('#') && element.isNotEmpty);
+  var props = Map.fromIterable(iterable, key: (v) => v.split('=')[0], value: (v) => v.split('=')[1]);
+  runApp(Ztv(props['playlist']));
 }
 
 class Ztv extends StatelessWidget {
-  const Ztv();
+  static const TAG = 'zTv_Ztv';
+
+  final playlist;
+
+  const Ztv(this.playlist);
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        AppLocalizations.delegate
-      ],
-      supportedLocales: LOCALES,
-      localeResolutionCallback: (locale, supportedLocales) => supportedLocales
-          .firstWhere((element) => element.languageCode == locale?.languageCode, orElse: () => supportedLocales.first),
-      theme: ThemeData(
-        primarySwatch: MaterialColor(0XFFF7000F, colorCodes),
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const HomePage(),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          AppLocalizations.delegate
+        ],
+        supportedLocales: LOCALES,
+        localeResolutionCallback: (locale, supportedLocales) => supportedLocales.firstWhere(
+            (element) => element.languageCode == locale?.languageCode,
+            orElse: () => supportedLocales.first),
+        theme: ThemeData(
+          primarySwatch: MaterialColor(0XFFF7000F, colorCodes),
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        home: HomePage(playlist),
+      );
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key key}) : super(key: key);
+  final playlist;
+
+  const HomePage(this.playlist, {Key key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -82,6 +91,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _play() {
+    if (_link is String && _link == widget.playlist) return;
     _availableLanguages = [ANY_LANGUAGE];
     _availableCategories = [ANY_CATEGORY];
     if (_link == null || _link is List) _link = _txtFieldTxt;
@@ -179,24 +189,32 @@ class _HomePageState extends State<HomePage> {
               IconButton(color: Colors.white, icon: Icon(Icons.folder), onPressed: _browse)
             ],
           ),
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  AppLocalizations.of(context).link,
-                  style: Theme.of(context).textTheme.headline5,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-                  child: TextField(
-                    onChanged: (String txt) => _link = txt,
-                    decoration: InputDecoration(hintText: AppLocalizations.of(context).link_val),
-                    controller: TextEditingController(text: _txtFieldTxt),
+          body: Column(
+            children: [
+              TextButton(
+                  style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
+                  onPressed: () {
+                    log(TAG, 'buy');
+                  },
+                  child: Text('BUY IPTV', style: TextStyle(color: Colors.white))),
+              Expanded(
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    AppLocalizations.of(context).link,
+                    style: Theme.of(context).textTheme.headline5,
                   ),
-                ),
-              ],
-            ),
+                  Padding(
+                      padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+                      child: TextField(
+                        onChanged: (String txt) => _link = txt,
+                        decoration: InputDecoration(hintText: AppLocalizations.of(context).link_val),
+                        controller: TextEditingController(text: _txtFieldTxt),
+                      )),
+                ],
+              ))
+            ],
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: _play,

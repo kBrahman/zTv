@@ -1,7 +1,7 @@
 name: ztv
 description: IPTV
 publish_to: 'none'
-version: 1.0.2+3
+version: 1.0.6+7
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -12,7 +12,6 @@ dependencies:
   flutter_launcher_icons: 0.8.1
   http: ^0.13.3
   video_player: ^2.1.1
-  permission_handler: 6.0.1
   file_picker: ^3.0.1
   data_connection_checker: ^0.3.4
   cupertino_icons: ^1.0.2
@@ -38,6 +37,7 @@ dev_dependencies:
 # The following section is specific to Flutter.
 flutter:
   assets:
+    - assets/local.properties
     - icon/ztv.jpg
   generate: true
 

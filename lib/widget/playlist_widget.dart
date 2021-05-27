@@ -55,14 +55,9 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     var searchActive = showSearchView || (widget._query != null && widget._query.isNotEmpty);
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(),
         actions: [
-          const SizedBox(width: 12),
-          const Align(
-              child: const Text(
-            'zTv',
-            style: TextStyle(fontSize: 20),
-          )),
-          const SizedBox(width: 16),
+          const SizedBox(width: 48),
           Expanded(
               child: searchActive
                   ? TextField(
@@ -128,7 +123,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
             return linkBroken
                 ? Center(child: Text(AppLocalizations.of(context).broken_link, style: TextStyle(fontSize: 25)))
                 : GridView.count(
-                    crossAxisCount: 3,
+                    crossAxisCount: MediaQuery.of(context).size.width >= 834 ? 4 : 3,
                     children: snapshot.data,
                     controller: _scrollController,
                   );
@@ -332,15 +327,14 @@ class DialogState extends State<ZtvDialog> {
     var catItem = SpinnerAndTitle(widget.category, 'Category', widget.availableCategories);
     return AlertDialog(
         title: Text('Filter'),
+        contentPadding: const EdgeInsets.only(left: 16, right: 16),
         actions: [
           TextButton(
-              onPressed: () {
-                setState(() {
-                  widget.language = ANY_LANGUAGE;
-                  widget.category = ANY_CATEGORY;
-                  widget.clear();
-                });
-              },
+              onPressed: () => setState(() {
+                    widget.language = ANY_LANGUAGE;
+                    widget.category = ANY_CATEGORY;
+                    widget.clear();
+                  }),
               child: Text('Clear')),
           TextButton(
               onPressed: () {

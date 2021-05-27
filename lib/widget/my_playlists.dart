@@ -39,7 +39,7 @@ class MyPlaylistsState extends State<MyPlaylists> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text(AppLocalizations.of(context).my_playlists)),
+        appBar: AppBar(leading: BackButton(), title: Text(AppLocalizations.of(context).my_playlists)),
         body: FutureBuilder(
             future: future,
             builder: (ctx, snap) {
