@@ -16,7 +16,7 @@ class MyPlaylists extends StatefulWidget {
 }
 
 class MyPlaylistsState extends State<MyPlaylists> {
-  Future<List<Playlist>> future;
+  late Future<List<Playlist>> future;
 
   @override
   void initState() {
@@ -39,7 +39,8 @@ class MyPlaylistsState extends State<MyPlaylists> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(leading: BackButton(), title: Text(AppLocalizations.of(context).my_playlists)),
+        appBar:
+            AppBar(leading: BackButton(), title: Text(AppLocalizations.of(context)?.my_playlists ?? 'My playlists')),
         body: FutureBuilder(
             future: future,
             builder: (ctx, snap) {

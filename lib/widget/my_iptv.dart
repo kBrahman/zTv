@@ -11,7 +11,7 @@ import 'package:ztv/util/util.dart';
 import 'package:ztv/widget/channel.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-class PlaylistWidget extends StatefulWidget {
+class MyIpTv extends StatefulWidget {
   var _linkOrList;
 
   final onTap;
@@ -21,19 +21,17 @@ class PlaylistWidget extends StatefulWidget {
   String? _query;
   var _language;
   var _category;
-  final _txtFieldTxt;
   final _availableLanguages;
   final List<String> _availableCategories;
-  var hasFilter;
 
-  PlaylistWidget(this._linkOrList, this.onTap, this._offset, this._query, this._language, this._category,
-      this._txtFieldTxt, this._availableLanguages, this._availableCategories, this.hasFilter);
+  MyIpTv(this._linkOrList, this.onTap, this._offset, this._query, this._language, this._category,
+      this._availableLanguages, this._availableCategories);
 
   @override
-  State<StatefulWidget> createState() => _PlaylistWidgetState();
+  State<StatefulWidget> createState() => _MyIpTvState();
 }
 
-class _PlaylistWidgetState extends State<PlaylistWidget> {
+class _MyIpTvState extends State<MyIpTv> {
   static const TAG = '_PlaylistState';
 
   late Future<List<Widget>> future;
@@ -94,22 +92,17 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                     color: Colors.white,
                   ),
                   onPressed: () => setState(() => showSearchView = true)),
-          widget.hasFilter
-              ? IconButton(
-                  icon: Icon(Icons.filter_list, color: Colors.white),
-                  onPressed: () => dialog(
-                          context,
-                          (lan, cat) => setState(() {
-                                widget._language = lan;
-                                widget._category = cat;
-                              }), () {
-                        widget._language = ANY_CATEGORY;
-                        widget._category = ANY_CATEGORY;
-                      }))
-              : SizedBox.shrink(),
           IconButton(
-              icon: Icon(Icons.save, color: Colors.white),
-              onPressed: () => showDialog(context: context, builder: (_) => SaveDialog(widget._txtFieldTxt)))
+              icon: Icon(Icons.filter_list, color: Colors.white),
+              onPressed: () => dialog(
+                      context,
+                      (lan, cat) => setState(() {
+                            widget._language = lan;
+                            widget._category = cat;
+                          }), () {
+                    widget._language = ANY_CATEGORY;
+                    widget._category = ANY_CATEGORY;
+                  }))
         ],
       ),
       body: FutureBuilder(
@@ -178,7 +171,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
             title,
             link,
             (String url, offset, query, language, category) => widget.onTap(url, list, offset, query, language,
-                category, title, widget._availableLanguages, widget._availableCategories, widget.hasFilter));
+                category, title, widget._availableLanguages, widget._availableCategories, false));
         channel.sc = _scrollController;
         if (title.contains(RegExp('FRANCE|\\|FR\\|'))) {
           channel.languages.add(FRENCH);
@@ -223,8 +216,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         list.add(channel);
       }
     }
-    setState(
-        () => widget.hasFilter = (widget._availableCategories.length > 1 || widget._availableCategories.length > 1));
     widget._linkOrList = list;
     return Future.value(list);
   }
@@ -235,7 +226,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         element.query = widget._query ?? '';
         element.lan = widget._language;
         element.cat = widget._category;
-        return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
+        return ((q == null || q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
             (widget._language != ANY_LANGUAGE ? element.languages.contains(widget._language) : true) &&
             (widget._category != ANY_CATEGORY ? element.category == widget._category : true);
       }).toList();

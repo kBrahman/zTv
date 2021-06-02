@@ -30,7 +30,7 @@ class MusicPlayerState extends State<MusicPlayer> {
         children: [
           Center(
               child: Text(
-            AppLocalizations.of(context).audio,
+            AppLocalizations.of(context)?.audio ?? 'This is an audio file!',
             style: TextStyle(fontSize: 24),
           )),
           Padding(

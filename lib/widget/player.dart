@@ -23,9 +23,9 @@ class Player extends StatefulWidget {
 class _PlayerState extends State<Player> {
   static const TAG = '_PlayerState';
   var _controller;
-  Future<void> _initializeVideoPlayerFuture;
+  Future<void>? _initializeVideoPlayerFuture;
   bool fullscreen = false;
-  bool isRtmp;
+  bool isRtmp = false;
   bool isPlaying = false;
 
   _PlayerState();
@@ -92,19 +92,21 @@ class _PlayerState extends State<Player> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   final err = snapshot.error;
-                  if (snapshot.hasError && err is PlatformException && err.message.contains('Source error')) {
+                  if (snapshot.hasError && err is PlatformException && err.message?.contains('Source error') == true) {
                     http.Request req = http.Request("Get", Uri.parse(_controller.dataSource))..followRedirects = false;
                     http.Client baseClient = http.Client();
-                    baseClient.send(req).then((resp) => setState(() {
-                          _controller = VideoPlayerController.network(resp.headers['location']);
+                    baseClient.send(req).then((resp) {
+                      var loc = resp.headers['location'];
+                      if (loc != null)
+                        setState(() {
+                          _controller = VideoPlayerController.network(loc);
                           _initializeVideoPlayerFuture = _controller.initialize();
-                        }));
+                        });
+                      else
+                        return WidgetChOff();
+                    });
                     return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError)
-                    return Center(
-                      heightFactor: 1,
-                      child: Text(AppLocalizations.of(context).ch_offline, textScaleFactor: 1.25),
-                    );
+                  } else if (snapshot.hasError) return WidgetChOff();
                   _controller.play();
                   final size = _controller.value.size;
                   return isAudioFile
@@ -154,10 +156,25 @@ class _PlayerState extends State<Player> {
   }
 
   void repeatedCheck(VlcPlayerController ctr) => Future.delayed(Duration(seconds: 1), ctr.isPlaying).then((isPlaying) {
-        if (isPlaying) {
+        if (isPlaying = true) {
           ctr.value.size.aspectRatio;
-          setState(() => this.isPlaying = isPlaying);
+          setState(() => this.isPlaying = isPlaying!);
         } else
           repeatedCheck(ctr);
       });
+}
+
+class WidgetChOff extends StatelessWidget {
+  const WidgetChOff({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      heightFactor: 1,
+      child: Text(AppLocalizations.of(context)?.ch_offline ?? 'This channel is offline now. Come later please',
+          textScaleFactor: 1.25),
+    );
+  }
 }

@@ -10,12 +10,12 @@ class Channel extends StatelessWidget {
   var category = ANY_CATEGORY;
   final tap;
   var isOff = false;
-  ScrollController sc;
-  String query;
+  ScrollController? sc;
+  String query = '';
   var lan = ANY_LANGUAGE;
   var cat = ANY_CATEGORY;
 
-  String logo;
+  String? logo;
 
   Channel(this.title, this.url, this.tap);
 
@@ -25,14 +25,13 @@ class Channel extends StatelessWidget {
     return Padding(
         padding: const EdgeInsets.all(4),
         child: GestureDetector(
-          onTap: () => {tap(url, sc.offset, query, lan, cat)},
+          onTap: () => {tap(url, sc?.offset, query, lan, cat)},
           child: Card(
             elevation: 4,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(
-                    child: logo == null ? img : Image.network(logo, errorBuilder: (c, e, t) => img)),
+                Flexible(child: logo == null ? img : Image.network(logo!, errorBuilder: (c, e, t) => img)),
                 Text(title, style: TextStyle(fontSize: 15)),
               ],
             ),

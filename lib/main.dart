@@ -1,13 +1,18 @@
-import 'package:data_connection_checker/data_connection_checker.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:ztv/util/util.dart';
+import 'package:ztv/util/ztv_purchase.dart';
+import 'package:ztv/widget/my_iptv.dart';
 import 'package:ztv/widget/my_playlists.dart';
 import 'package:ztv/widget/player.dart';
 import 'package:ztv/widget/playlist_widget.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 
 import 'l10n/locale.dart';
 
@@ -18,6 +23,7 @@ var colorCodes = {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  InAppPurchaseAndroidPlatformAddition.enablePendingPurchases();
   String data = await rootBundle.loadString('assets/local.properties');
   var iterable = data.split('\n').where((element) => !element.startsWith('#') && element.isNotEmpty);
   var props = Map.fromIterable(iterable, key: (v) => v.split('=')[0], value: (v) => v.split('=')[1]);
@@ -55,7 +61,7 @@ class Ztv extends StatelessWidget {
 class HomePage extends StatefulWidget {
   final playlist;
 
-  const HomePage(this.playlist, {Key key}) : super(key: key);
+  const HomePage(this.playlist, {Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -78,15 +84,12 @@ class _HomePageState extends State<HomePage> {
   var _availableLanguages = [ANY_LANGUAGE];
   var _availableCategories = [ANY_CATEGORY];
   var _hasFilter = false;
+  var _hasIPTV;
 
   @override
   void initState() {
-    final dCC = DataConnectionChecker()
-      ..onStatusChange.listen((event) {
-        log(TAG, event.toString());
-        _connectedToInet = event == DataConnectionStatus.connected;
-      });
-    dCC.hasConnection.then((value) => _connectedToInet = value);
+    checkConnection();
+    checkSubs();
     super.initState();
   }
 
@@ -108,7 +111,8 @@ class _HomePageState extends State<HomePage> {
         stateStack.add(UIState.PLAYER);
       });
     else {
-      final snackBar = SnackBar(content: Text(AppLocalizations.of(context).no_inet), duration: Duration(seconds: 1));
+      final snackBar = SnackBar(
+          content: Text(AppLocalizations.of(context)?.no_inet ?? 'No internet'), duration: Duration(seconds: 1));
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
     _txtFieldTxt = _link;
@@ -160,7 +164,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _browse() async {
-    FilePickerResult result = await FilePicker.platform
+    FilePickerResult? result = await FilePicker.platform
         .pickFiles(type: FileType.custom, allowedExtensions: ['flac', 'mp4', 'm3u', 'mp3', 'm3u']);
     if (result != null)
       setState(() {
@@ -191,25 +195,27 @@ class _HomePageState extends State<HomePage> {
           ),
           body: Column(
             children: [
-              TextButton(
-                  style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
-                  onPressed: () {
-                    log(TAG, 'buy');
-                  },
-                  child: Text('BUY IPTV', style: TextStyle(color: Colors.white))),
+              if (_hasIPTV != null)
+                TextButton(
+                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
+                    onPressed: () {
+                      _hasIPTV ? myIptv() : buyIptv();
+                    },
+                    child: Text(_hasIPTV ? 'MY IPTV' : 'BUY IPTV', style: TextStyle(color: Colors.white))),
               Expanded(
                   child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    AppLocalizations.of(context).link,
+                    AppLocalizations.of(context)?.link ?? 'Paste your link here',
                     style: Theme.of(context).textTheme.headline5,
                   ),
                   Padding(
                       padding: const EdgeInsets.only(left: 16.0, right: 16.0),
                       child: TextField(
                         onChanged: (String txt) => _link = txt,
-                        decoration: InputDecoration(hintText: AppLocalizations.of(context).link_val),
+                        decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context)?.link_val ?? 'Video URL or IPTV playlist URL'),
                         controller: TextEditingController(text: _txtFieldTxt),
                       )),
                 ],
@@ -222,18 +228,37 @@ class _HomePageState extends State<HomePage> {
             child: const Icon(Icons.play_arrow),
           ),
         );
-        break;
       case UIState.PLAYLIST:
         return PlaylistWidget(_link, onTap, _offset, _query, _language, _category, _txtFieldTxt, _availableLanguages,
             _availableCategories, _hasFilter);
-        break;
       case UIState.PLAYER:
         return Player(_link.trim(), _title);
-        break;
       case UIState.MY_PLAYLISTS:
         return MyPlaylists(onPlaylistTap);
+      case UIState.MY_IPTV:
+        return MyIpTv(
+            widget.playlist, onTap, _offset, _query, _language, _category, _availableLanguages, _availableCategories);
     }
+  }
+
+  void checkSubs() async {
+    ZtvPurchases();
+    log(TAG, 'checkSubs');
+  }
+
+  myIptv() {
+    setState(() {
+      uiState = UIState.MY_IPTV;
+    });
+    stateStack.add(UIState.MY_IPTV);
+  }
+
+  buyIptv() {}
+
+  void checkConnection() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    _connectedToInet = connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
   }
 }
 
-enum UIState { MAIN, PLAYLIST, PLAYER, MY_PLAYLISTS }
+enum UIState { MAIN, PLAYLIST, PLAYER, MY_PLAYLISTS, MY_IPTV }
