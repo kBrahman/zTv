@@ -7,7 +7,6 @@ enum ProductStatus {
 }
 
 class PurchasableProduct {
-
   String get id => productDetails.id;
 
   String get title => productDetails.title;

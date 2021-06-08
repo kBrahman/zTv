@@ -22,12 +22,13 @@ class PlaylistWidget extends StatefulWidget {
   var _language;
   var _category;
   final _txtFieldTxt;
-  final _availableLanguages;
-  final List<String> _availableCategories;
+  final _dropDownLanguages;
+  final List<String> _dropDownCategories;
   var hasFilter;
+  var hasSavePlayList;
 
   PlaylistWidget(this._linkOrList, this.onTap, this._offset, this._query, this._language, this._category,
-      this._txtFieldTxt, this._availableLanguages, this._availableCategories, this.hasFilter);
+      this._txtFieldTxt, this._dropDownLanguages, this._dropDownCategories, this.hasFilter, this.hasSavePlayList);
 
   @override
   State<StatefulWidget> createState() => _PlaylistWidgetState();
@@ -102,14 +103,16 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                           (lan, cat) => setState(() {
                                 widget._language = lan;
                                 widget._category = cat;
+                                log(TAG, "submit lan=>$lan; cat=>$cat");
                               }), () {
-                        widget._language = ANY_CATEGORY;
+                        widget._language = ANY_LANGUAGE;
                         widget._category = ANY_CATEGORY;
                       }))
               : SizedBox.shrink(),
-          IconButton(
-              icon: Icon(Icons.save, color: Colors.white),
-              onPressed: () => showDialog(context: context, builder: (_) => SaveDialog(widget._txtFieldTxt)))
+          if (widget.hasSavePlayList)
+            IconButton(
+                icon: Icon(Icons.save, color: Colors.white),
+                onPressed: () => showDialog(context: context, builder: (_) => SaveDialog(widget._txtFieldTxt)))
         ],
       ),
       body: FutureBuilder(
@@ -173,13 +176,22 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
       if (line.startsWith('#EXTINF')) {
         final split = line.split(',');
         var title = split.last.replaceAll('====', '');
-        var link = lines[i + 1];
+        String link = lines[++i];
+        var endsWith = link.trim().endsWith('.png');
+        if (endsWith) continue;
+        var category;
+        if (link.startsWith('#EXTGRP')) {
+          category = link.split(':')[1];
+          i++;
+        }
+        while (!(link = lines[i]).startsWith('http')) i++;
         final channel = Channel(
             title,
             link,
             (String url, offset, query, language, category) => widget.onTap(url, list, offset, query, language,
-                category, title, widget._availableLanguages, widget._availableCategories, widget.hasFilter));
+                category, title, widget._dropDownLanguages, widget._dropDownCategories, widget.hasFilter));
         channel.sc = _scrollController;
+        if (category != null) channel.category = category;
         if (title.contains(RegExp('FRANCE|\\|FR\\|'))) {
           channel.languages.add(FRENCH);
         } else if (title.contains(RegExp('\\|AR\\|'))) {
@@ -217,38 +229,32 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         var data = split.first;
         setChProps(data.split(' '), channel);
         for (final l in channel.languages) {
-          if (!widget._availableLanguages.contains(l)) widget._availableLanguages.add(l);
+          if (!widget._dropDownLanguages.contains(l)) widget._dropDownLanguages.add(l);
         }
-        if (!widget._availableCategories.contains(channel.category)) widget._availableCategories.add(channel.category);
+        if (!widget._dropDownCategories.contains(channel.category)) widget._dropDownCategories.add(channel.category);
         list.add(channel);
       }
     }
-    setState(
-        () => widget.hasFilter = (widget._availableCategories.length > 1 || widget._availableCategories.length > 1));
+    setState(() => widget.hasFilter = (widget._dropDownCategories.length > 1 || widget._dropDownLanguages.length > 1));
     widget._linkOrList = list;
     return Future.value(list);
   }
 
-  Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) {
-    return f.then((list) {
-      var filteredList = list.where((element) {
-        element.query = widget._query ?? '';
-        element.lan = widget._language;
-        element.cat = widget._category;
-        return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
-            (widget._language != ANY_LANGUAGE ? element.languages.contains(widget._language) : true) &&
-            (widget._category != ANY_CATEGORY ? element.category == widget._category : true);
-      }).toList();
-      return filteredList;
-    });
-  }
+  Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) =>
+      f.then((list) => list.where((element) {
+            log(TAG, 'getFilteredChannels where channel=>${element.title}');
+            element.query = widget._query ?? '';
+            element.filterLanguage = widget._language;
+            element.filterCategory = widget._category;
+            return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
+                (widget._language != ANY_LANGUAGE ? element.languages.contains(widget._language) : true) &&
+                (widget._category != ANY_CATEGORY ? element.category == widget._category : true);
+          }).toList());
 
   void dialog(ctx, submit, clear) => showDialog(
       context: ctx,
-      builder: (_) {
-        return ZtvDialog(
-            submit, clear, widget._language, widget._category, widget._availableLanguages, widget._availableCategories);
-      });
+      builder: (_) => ZtvDialog(
+          submit, clear, widget._language, widget._category, widget._dropDownLanguages, widget._dropDownCategories));
 
   setChProps(List<String> data, Channel channel) {
     for (final item in data) {
@@ -325,8 +331,8 @@ class DialogState extends State<ZtvDialog> {
 
   @override
   Widget build(BuildContext context) {
-    var lanItem = SpinnerAndTitle(widget.language, 'Language', widget.availableLanguages);
-    var catItem = SpinnerAndTitle(widget.category, 'Category', widget.availableCategories);
+    var languageSpinnerAndTitle = SpinnerAndTitle(widget.language, 'Language', widget.availableLanguages);
+    var categorySpinnerAndTitle = SpinnerAndTitle(widget.category, 'Category', widget.availableCategories);
     return AlertDialog(
         title: Text('Filter'),
         contentPadding: const EdgeInsets.only(left: 16, right: 16),
@@ -340,15 +346,15 @@ class DialogState extends State<ZtvDialog> {
               child: Text('Clear')),
           TextButton(
               onPressed: () {
-                widget.submit(lanItem.dropdownValue, catItem.dropdownValue);
+                widget.submit(languageSpinnerAndTitle.dropdownValue, categorySpinnerAndTitle.dropdownValue);
                 Navigator.of(context).pop();
               },
               child: Text('OK'))
         ],
         content: Row(
           children: [
-            Padding(padding: EdgeInsets.only(right: 2), child: lanItem),
-            Padding(padding: EdgeInsets.only(left: 2), child: catItem)
+            Padding(padding: EdgeInsets.only(right: 2), child: languageSpinnerAndTitle),
+            Padding(padding: EdgeInsets.only(left: 2), child: categorySpinnerAndTitle)
           ],
         ));
   }
@@ -366,6 +372,8 @@ class SpinnerAndTitle extends StatefulWidget {
 }
 
 class SpinnerAndTitleState extends State<SpinnerAndTitle> {
+  static const TAG = 'SpinnerAndTitleState';
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -375,6 +383,7 @@ class SpinnerAndTitleState extends State<SpinnerAndTitle> {
         DropdownButton<String>(
           value: widget.dropdownValue,
           onChanged: (String? newValue) {
+            log(TAG, "on changed new val=>$newValue");
             setState(() {
               widget.dropdownValue = newValue;
             });

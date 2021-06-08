@@ -25,7 +25,7 @@ class _PlayerState extends State<Player> {
   var _controller;
   Future<void>? _initializeVideoPlayerFuture;
   bool fullscreen = false;
-  bool isRtmp = false;
+  bool delegateToVLC = false;
   bool isPlaying = false;
 
   _PlayerState();
@@ -33,17 +33,22 @@ class _PlayerState extends State<Player> {
   @override
   void initState() {
     var dataSource = widget.linkOrChannel;
-    log(TAG, dataSource);
-    isRtmp = isRTMP(dataSource);
-    var url = getUrl(dataSource);
-    if (isRtmp) {
-      _controller = VlcPlayerController.network(url, autoPlay: true, options: VlcPlayerOptions())
-        ..addOnInitListener(() => repeatedCheck(_controller));
-    } else {
+    delegateToVLC = isRTMP(dataSource);
+    String url = getUrl(dataSource);
+    log(TAG, url.substring(1));
+    if (delegateToVLC)
+      initVLC(url);
+    else {
       _controller = VideoPlayerController.network(url);
       _initializeVideoPlayerFuture = _controller.initialize();
     }
     super.initState();
+  }
+
+  void initVLC(String url) {
+    _controller = VlcPlayerController.network(url, autoPlay: true, options: VlcPlayerOptions())
+      ..addOnInitListener(() => repeatedCheck(_controller));
+    log(TAG, 'initVLC');
   }
 
   getUrl(dataSource) => dataSource is Channel ? dataSource.url : dataSource;
@@ -75,7 +80,7 @@ class _PlayerState extends State<Player> {
                       )
               ],
             ),
-      body: isRtmp
+      body: delegateToVLC
           ? Stack(children: [
               VlcPlayer(
                 controller: _controller,
@@ -92,7 +97,9 @@ class _PlayerState extends State<Player> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   final err = snapshot.error;
-                  if (snapshot.hasError && err is PlatformException && err.message?.contains('Source error') == true) {
+                  var hasError = snapshot.hasError;
+                  if (hasError && err is PlatformException && err.message?.contains('Source error') == true) {
+                    log(TAG, 'source err, getting location');
                     http.Request req = http.Request("Get", Uri.parse(_controller.dataSource))..followRedirects = false;
                     http.Client baseClient = http.Client();
                     baseClient.send(req).then((resp) {
@@ -106,7 +113,14 @@ class _PlayerState extends State<Player> {
                         return WidgetChOff();
                     });
                     return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) return WidgetChOff();
+                  } else if (hasError &&
+                      err is PlatformException &&
+                      err.message?.contains('MediaCodecVideoRenderer error') == true) {
+                    log(TAG, 'trying to play with VLC');
+                    delegateToVLC = true;
+                    initAndSetDelegate(getUrl(widget.linkOrChannel));
+                    return Center(child: CircularProgressIndicator());
+                  } else if (hasError) return WidgetChOff();
                   _controller.play();
                   final size = _controller.value.size;
                   return isAudioFile
@@ -155,13 +169,19 @@ class _PlayerState extends State<Player> {
     return false;
   }
 
-  void repeatedCheck(VlcPlayerController ctr) => Future.delayed(Duration(seconds: 1), ctr.isPlaying).then((isPlaying) {
-        if (isPlaying = true) {
-          ctr.value.size.aspectRatio;
-          setState(() => this.isPlaying = isPlaying!);
-        } else
-          repeatedCheck(ctr);
-      });
+  void repeatedCheck(VlcPlayerController ctr) {
+    log(TAG, 'repeatedCheck');
+    Future.delayed(Duration(seconds: 1), ctr.isPlaying).then((isPlaying) {
+      log(TAG, 'is playing=>$isPlaying');
+      if (isPlaying = true) {
+        ctr.value.size.aspectRatio;
+        setState(() => this.isPlaying = isPlaying!);
+      } else
+        repeatedCheck(ctr);
+    });
+  }
+
+  void initAndSetDelegate(url) => Future.microtask(() => initVLC(url)).then((value) => setState(() => delegateToVLC = true));
 }
 
 class WidgetChOff extends StatelessWidget {

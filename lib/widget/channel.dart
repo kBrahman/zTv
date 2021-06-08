@@ -12,8 +12,8 @@ class Channel extends StatelessWidget {
   var isOff = false;
   ScrollController? sc;
   String query = '';
-  var lan = ANY_LANGUAGE;
-  var cat = ANY_CATEGORY;
+  var filterLanguage = ANY_LANGUAGE;
+  var filterCategory = ANY_CATEGORY;
 
   String? logo;
 
@@ -25,7 +25,10 @@ class Channel extends StatelessWidget {
     return Padding(
         padding: const EdgeInsets.all(4),
         child: GestureDetector(
-          onTap: () => {tap(url, sc?.offset, query, lan, cat)},
+          onTap: () {
+            log(TAG, 'on tap=>$filterCategory');
+            tap(url, sc?.offset, query, filterLanguage, filterCategory);
+          },
           child: Card(
             elevation: 4,
             child: Column(

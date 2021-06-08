@@ -36,4 +36,4 @@ const MUSIC = 'Music';
 const DB_NAME = 'ztv.db';
 const TABLE_PLAYLIST = 'playlist';
 
-log(String tag, String msg) => print('$tag:$msg');
+log(String tag, String? msg) => print('$tag:$msg');

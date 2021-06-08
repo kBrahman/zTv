@@ -14,5 +14,17 @@
   "broken_link": "Link is broken!",
   "@broken_link": {},
   "save_playlist": "Save playlist",
-  "@save_playlist": {}
+  "@save_playlist": {},
+  "my_iptv": "MY IPTV",
+  "@my_iptv": {},
+  "buy_iptv": "BUY IPTV",
+  "@buy_iptv": {},
+  "get_iptv_txt": "Get 10000+ channels only for {price}/year",
+  "@get_iptv_txt": {
+    "placeholders": {
+      "price": {
+        "type:": "String"
+      }
+    }
+  }
 }

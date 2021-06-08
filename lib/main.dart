@@ -1,18 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/util/ztv_purchase.dart';
-import 'package:ztv/widget/my_iptv.dart';
 import 'package:ztv/widget/my_playlists.dart';
 import 'package:ztv/widget/player.dart';
 import 'package:ztv/widget/playlist_widget.dart';
-import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 
 import 'l10n/locale.dart';
 
@@ -69,6 +70,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   static const TAG = '_HomePageState';
+  static const YEAR_IN_SEC = 365 * 24 * 3600;
 
   var _link;
   var _dataHolder;
@@ -76,15 +78,17 @@ class _HomePageState extends State<HomePage> {
   var _txtFieldTxt;
   var _query;
   var _connectedToInet = true;
-  var _language = ANY_LANGUAGE;
-  var _category = ANY_CATEGORY;
+  var _filterLanguage = ANY_LANGUAGE;
+  var _filterCategory = ANY_CATEGORY;
   var uiState = UIState.MAIN;
   var _title = 'Player';
   final stateStack = [UIState.MAIN];
-  var _availableLanguages = [ANY_LANGUAGE];
-  var _availableCategories = [ANY_CATEGORY];
+  var _filterLanguages = [ANY_LANGUAGE];
+  var _filterCategories = [ANY_CATEGORY];
   var _hasFilter = false;
   var _hasIPTV;
+  var purchase = ZtvPurchases();
+  String? id;
 
   @override
   void initState() {
@@ -95,8 +99,8 @@ class _HomePageState extends State<HomePage> {
 
   void _play() {
     if (_link is String && _link == widget.playlist) return;
-    _availableLanguages = [ANY_LANGUAGE];
-    _availableCategories = [ANY_CATEGORY];
+    _filterLanguages = [ANY_LANGUAGE];
+    _filterCategories = [ANY_CATEGORY];
     if (_link == null || _link is List) _link = _txtFieldTxt;
     if (_link == null || _link.trim().isEmpty) return;
     print('play=>$_link');
@@ -123,13 +127,15 @@ class _HomePageState extends State<HomePage> {
     return WillPopScope(onWillPop: willPop, child: getChild());
   }
 
-  void onTap(urlOrChannel, List<Widget> data, double offset, String query, language, category, title, langs, categories,
-      hasFilter) {
-    this._language = language;
-    this._category = category;
+  void onTap(urlOrChannel, List<Widget> data, double offset, String query, filterLanguage, filterCategory, title,
+      filterLanguages, categories, hasFilter) {
+    log(TAG, 'on tap category=>$filterCategory');
+    log(TAG, 'on tap filterLanguage=>$filterLanguage');
+    this._filterLanguage = filterLanguage;
+    this._filterCategory = filterCategory;
     this._title = title;
-    this._availableLanguages = langs;
-    this._availableCategories = categories;
+    this._filterLanguages = filterLanguages;
+    this._filterCategories = categories;
     this._hasFilter = hasFilter;
     _dataHolder = data;
     _offset = offset;
@@ -153,11 +159,11 @@ class _HomePageState extends State<HomePage> {
     if (stateStack.isEmpty) return Future.value(true);
     setState(() {
       uiState = stateStack.last;
-      if (uiState != UIState.PLAYLIST) {
+      if (uiState != UIState.PLAYLIST && uiState != UIState.MY_IPTV) {
         _query = null;
         _offset = 0.0;
-        _language = ANY_LANGUAGE;
-        _category = ANY_CATEGORY;
+        _filterLanguage = ANY_LANGUAGE;
+        _filterCategory = ANY_CATEGORY;
       }
     });
     return Future.value(false);
@@ -195,13 +201,18 @@ class _HomePageState extends State<HomePage> {
           ),
           body: Column(
             children: [
-              if (_hasIPTV != null)
+              if (_hasIPTV == false && purchase.product != null)
+                Text(AppLocalizations.of(context)?.get_iptv_txt(purchase.product!.price) ??
+                    'Get 10000+ channels only for ${purchase.product!.price}/year'),
+              if (_hasIPTV != null && purchase.product != null)
                 TextButton(
                     style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
-                    onPressed: () {
-                      _hasIPTV ? myIptv() : buyIptv();
-                    },
-                    child: Text(_hasIPTV ? 'MY IPTV' : 'BUY IPTV', style: TextStyle(color: Colors.white))),
+                    onPressed: () => _hasIPTV ? myIptv() : buyIptv(),
+                    child: Text(
+                        _hasIPTV
+                            ? AppLocalizations.of(context)?.my_iptv ?? 'MY IPTV'
+                            : AppLocalizations.of(context)?.buy_iptv ?? 'BUY IPTV',
+                        style: TextStyle(color: Colors.white))),
               Expanded(
                   child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -229,36 +240,67 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       case UIState.PLAYLIST:
-        return PlaylistWidget(_link, onTap, _offset, _query, _language, _category, _txtFieldTxt, _availableLanguages,
-            _availableCategories, _hasFilter);
+        return PlaylistWidget(_link, onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
+            _filterLanguages, _filterCategories, _hasFilter, true);
       case UIState.PLAYER:
         return Player(_link.trim(), _title);
       case UIState.MY_PLAYLISTS:
         return MyPlaylists(onPlaylistTap);
       case UIState.MY_IPTV:
-        return MyIpTv(
-            widget.playlist, onTap, _offset, _query, _language, _category, _availableLanguages, _availableCategories);
+        return PlaylistWidget(_link, onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
+            _filterLanguages, _filterCategories, _hasFilter, false);
     }
   }
 
   void checkSubs() async {
-    ZtvPurchases();
-    log(TAG, 'checkSubs');
+    await signIn();
+    await Firebase.initializeApp();
+    var doc = FirebaseFirestore.instance.doc('user/$id');
+    doc.get().then((value) {
+      var exists = value.exists;
+      log(TAG, 'exists=>$exists');
+      setState(() {
+        _hasIPTV = exists && Timestamp.now().seconds - (value['time'] as Timestamp).seconds < YEAR_IN_SEC;
+      });
+    });
+    // FirebaseFirestore.instance.doc('user/udeulan342').delete();
+  }
+
+  Future<void> signIn() async {
+    GoogleSignIn _googleSignIn = GoogleSignIn(scopes: <String>['email']);
+    final signedIn = await _googleSignIn.isSignedIn();
+    log(TAG, 'is signed in=>$signedIn, current user=>${_googleSignIn.currentUser}');
+    id = _googleSignIn.currentUser?.email;
+    if (id == null && (id = (await _googleSignIn.signInSilently())?.email) == null) {
+      log(TAG, 'signing in');
+      id = (await _googleSignIn.signIn())?.email;
+    }
+    id = id?.replaceFirst('@gmail.com', '');
+    log(TAG, 'user id=>$id');
+  }
+
+  buyIptv() async {
+    log(TAG, 'buy iptv');
+    if (id == null)
+      await signIn();
+    else
+      purchase.buy(id!, () => setState(() => _hasIPTV = true));
   }
 
   myIptv() {
-    setState(() {
-      uiState = UIState.MY_IPTV;
-    });
+    _link = widget.playlist;
+    setState(() => uiState = UIState.MY_IPTV);
     stateStack.add(UIState.MY_IPTV);
   }
 
-  buyIptv() {}
-
   void checkConnection() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
-    _connectedToInet = connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
+    setConnected(connectivityResult);
+    Connectivity().onConnectivityChanged.listen((r) => setConnected(r));
   }
+
+  void setConnected(ConnectivityResult connectivityResult) => _connectedToInet =
+      connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
 }
 
 enum UIState { MAIN, PLAYLIST, PLAYER, MY_PLAYLISTS, MY_IPTV }
