@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:file_picker/file_picker.dart';
@@ -9,6 +11,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:ztv/model/purchasable_product.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/util/ztv_purchase.dart';
 import 'package:ztv/widget/my_playlists.dart';
@@ -202,8 +206,10 @@ class _HomePageState extends State<HomePage> {
           body: Column(
             children: [
               if (_hasIPTV == false && purchase.product != null)
-                Text(AppLocalizations.of(context)?.get_iptv_txt(purchase.product!.price) ??
-                    'Get 10000+ channels only for ${purchase.product!.price}/year'),
+                Text(purchase.product!.status == ProductStatus.purchasable
+                    ? AppLocalizations.of(context)?.get_iptv_txt(purchase.product!.price) ??
+                        'Get 10000+ channels only for ${purchase.product!.price}/year'
+                    : AppLocalizations.of(context)?.processing ?? 'Processing...'),
               if (_hasIPTV != null && purchase.product != null)
                 TextButton(
                     style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
@@ -252,8 +258,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void checkSubs() async {
-    await signIn();
+  Future<void> checkSubs() async {
+    id = await signIn();
+    log(TAG, 'checkSubs id=>$id');
+    if (id == null) {
+      setState(() {
+        _hasIPTV = false;
+      });
+      return;
+    }
     await Firebase.initializeApp();
     var doc = FirebaseFirestore.instance.doc('user/$id');
     doc.get().then((value) {
@@ -266,7 +279,9 @@ class _HomePageState extends State<HomePage> {
     // FirebaseFirestore.instance.doc('user/udeulan342').delete();
   }
 
-  Future<void> signIn() async {
+  Future<String?> signIn() async => Platform.isAndroid ? await googleSignIn() : await appleSignIn();
+
+  Future<String> googleSignIn() async {
     GoogleSignIn _googleSignIn = GoogleSignIn(scopes: <String>['email']);
     final signedIn = await _googleSignIn.isSignedIn();
     log(TAG, 'is signed in=>$signedIn, current user=>${_googleSignIn.currentUser}');
@@ -275,16 +290,18 @@ class _HomePageState extends State<HomePage> {
       log(TAG, 'signing in');
       id = (await _googleSignIn.signIn())?.email;
     }
-    id = id?.replaceFirst('@gmail.com', '');
-    log(TAG, 'user id=>$id');
+    return Future.value(id?.replaceFirst('@gmail.com', ''));
   }
 
   buyIptv() async {
     log(TAG, 'buy iptv');
     if (id == null)
-      await signIn();
-    else
-      purchase.buy(id!, () => setState(() => _hasIPTV = true));
+      await checkSubs();
+    else {
+      purchase.buy(id!, () => setState(() => _hasIPTV = true),
+          () => setState(() => purchase.product?.status = ProductStatus.purchasable));
+      setState(() => purchase.product?.status = ProductStatus.pending);
+    }
   }
 
   myIptv() {
@@ -301,6 +318,11 @@ class _HomePageState extends State<HomePage> {
 
   void setConnected(ConnectivityResult connectivityResult) => _connectedToInet =
       connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
+
+  Future<String?> appleSignIn() async {
+    final credential = await SignInWithApple.getAppleIDCredential(scopes: []);
+    return Future.value(credential.userIdentifier);
+  }
 }
 
 enum UIState { MAIN, PLAYLIST, PLAYER, MY_PLAYLISTS, MY_IPTV }

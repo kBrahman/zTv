@@ -12,17 +12,18 @@ class ZtvPurchases extends ChangeNotifier {
   static const TAG = 'ZtvPurchases';
 
   late StreamSubscription<List<PurchaseDetails>> _subscription;
-  final iapConnection = IAPConnection.instance;
+  final InAppPurchase iapConnection = IAPConnection.instance;
   var storeState = StoreState.UNDEFINED;
   PurchasableProduct? product;
 
   late String email;
   var onPurchased;
+  var onPurchaseError;
 
   ZtvPurchases() {
     log(TAG, 'ZtvPurchases');
-    final purchaseUpdated = iapConnection.purchaseStream;
-    _subscription = purchaseUpdated.listen(
+    final stream = iapConnection.purchaseStream;
+    _subscription = stream.listen(
       _onPurchaseUpdate,
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
@@ -42,10 +43,11 @@ class ZtvPurchases extends ChangeNotifier {
   }
 
   void _handlePurchase(PurchaseDetails purchaseDetails) {
+    log(TAG, '_handlePurchase status=>${purchaseDetails.status}');
     if (purchaseDetails.status == PurchaseStatus.purchased) {
       log(TAG, 'purchased');
       FirebaseFirestore.instance.doc('user/$email').set({'time': Timestamp.now()}).then((value) => onPurchased());
-    }
+    } else if (purchaseDetails.status == PurchaseStatus.error) onPurchaseError();
     if (purchaseDetails.pendingCompletePurchase) {
       iapConnection.completePurchase(purchaseDetails);
     }
@@ -56,7 +58,7 @@ class ZtvPurchases extends ChangeNotifier {
     _subscription.cancel();
   }
 
-  void _updateStreamOnError(dynamic error) {
+  void _updateStreamOnError(error) {
     log(TAG, error);
   }
 
@@ -79,11 +81,16 @@ class ZtvPurchases extends ChangeNotifier {
     log(TAG, product?.id);
   }
 
-  Future<void> buy(String email, onPurchased) async {
+  buy(String email, onPurchased, onPurchaseError) {
     this.email = email;
     this.onPurchased = onPurchased;
+    this.onPurchaseError = onPurchaseError;
     final purchaseParam = PurchaseParam(productDetails: product!.productDetails);
-    await iapConnection.buyConsumable(purchaseParam: purchaseParam);
+    try {
+      iapConnection.buyConsumable(purchaseParam: purchaseParam);
+    } on Exception catch (e) {
+      log(TAG, 'buyConsumable catch=>$e');
+    }
   }
 }
 

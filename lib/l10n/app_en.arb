@@ -26,5 +26,7 @@
         "type:": "String"
       }
     }
-  }
+  },
+  "processing": "Processing...",
+  "@processing": {}
 }

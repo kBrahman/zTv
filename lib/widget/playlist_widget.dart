@@ -242,7 +242,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
 
   Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) =>
       f.then((list) => list.where((element) {
-            log(TAG, 'getFilteredChannels where channel=>${element.title}');
             element.query = widget._query ?? '';
             element.filterLanguage = widget._language;
             element.filterCategory = widget._category;
@@ -334,8 +333,8 @@ class DialogState extends State<ZtvDialog> {
     var languageSpinnerAndTitle = SpinnerAndTitle(widget.language, 'Language', widget.availableLanguages);
     var categorySpinnerAndTitle = SpinnerAndTitle(widget.category, 'Category', widget.availableCategories);
     return AlertDialog(
-        title: Text('Filter'),
-        contentPadding: const EdgeInsets.only(left: 16, right: 16),
+        title: Padding(child: Text('Filter'), padding: EdgeInsets.only(bottom: 16)),
+        contentPadding: const EdgeInsets.only(left: 4, right: 4),
         actions: [
           TextButton(
               onPressed: () => setState(() {
