@@ -33,7 +33,7 @@ class _PlayerState extends State<Player> {
   @override
   void initState() {
     var dataSource = widget.linkOrChannel;
-    delegateToVLC = isRTMP(dataSource);
+    delegateToVLC = delegate(dataSource);
     String url = getUrl(dataSource);
     log(TAG, url.substring(1));
     if (delegateToVLC)
@@ -163,7 +163,7 @@ class _PlayerState extends State<Player> {
 
   getName(String link) => link.substring(link.lastIndexOf('/') + 1);
 
-  bool isRTMP(data) {
+  bool delegate(data) {
     if (data is String) return data.startsWith('rtmp://');
     if (data is Channel) return data.url.startsWith('rtmp://');
     return false;
@@ -181,7 +181,8 @@ class _PlayerState extends State<Player> {
     });
   }
 
-  void initAndSetDelegate(url) => Future.microtask(() => initVLC(url)).then((value) => setState(() => delegateToVLC = true));
+  void initAndSetDelegate(url) =>
+      Future.microtask(() => initVLC(url)).then((value) => setState(() => delegateToVLC = true));
 }
 
 class WidgetChOff extends StatelessWidget {

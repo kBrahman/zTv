@@ -16,7 +16,7 @@ class ZtvPurchases extends ChangeNotifier {
   var storeState = StoreState.UNDEFINED;
   PurchasableProduct? product;
 
-  late String email;
+  late String id;
   var onPurchased;
   var onPurchaseError;
 
@@ -46,10 +46,11 @@ class ZtvPurchases extends ChangeNotifier {
     log(TAG, '_handlePurchase status=>${purchaseDetails.status}');
     if (purchaseDetails.status == PurchaseStatus.purchased) {
       log(TAG, 'purchased');
-      FirebaseFirestore.instance.doc('user/$email').set({'time': Timestamp.now()}).then((value) => onPurchased());
+      FirebaseFirestore.instance.doc('user/$id').set({'time': Timestamp.now()}).then((value) => onPurchased());
     } else if (purchaseDetails.status == PurchaseStatus.error) onPurchaseError();
     if (purchaseDetails.pendingCompletePurchase) {
       iapConnection.completePurchase(purchaseDetails);
+      log(TAG,'complete purchase');
     }
   }
 
@@ -81,8 +82,8 @@ class ZtvPurchases extends ChangeNotifier {
     log(TAG, product?.id);
   }
 
-  buy(String email, onPurchased, onPurchaseError) {
-    this.email = email;
+  buy(String id, onPurchased, onPurchaseError) {
+    this.id = id;
     this.onPurchased = onPurchased;
     this.onPurchaseError = onPurchaseError;
     final purchaseParam = PurchaseParam(productDetails: product!.productDetails);

@@ -176,10 +176,7 @@ class _HomePageState extends State<HomePage> {
   void _browse() async {
     FilePickerResult? result = await FilePicker.platform
         .pickFiles(type: FileType.custom, allowedExtensions: ['flac', 'mp4', 'm3u', 'mp3', 'm3u']);
-    if (result != null)
-      setState(() {
-        _txtFieldTxt = result.files.single.path;
-      });
+    if (result != null) setState(() => _txtFieldTxt = result.files.single.path);
   }
 
   bool isLocalFile(String link) => link.endsWith('.flac') || link.endsWith('.mp4') || link.endsWith('.mp3');
@@ -213,7 +210,7 @@ class _HomePageState extends State<HomePage> {
               if (_hasIPTV != null && purchase.product != null)
                 TextButton(
                     style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
-                    onPressed: () => _hasIPTV ? myIptv() : buyIptv(),
+                    onPressed: () => _hasIPTV ? myIptv() : buyIptv(false),
                     child: Text(
                         _hasIPTV
                             ? AppLocalizations.of(context)?.my_iptv ?? 'MY IPTV'
@@ -287,16 +284,18 @@ class _HomePageState extends State<HomePage> {
     log(TAG, 'is signed in=>$signedIn, current user=>${_googleSignIn.currentUser}');
     id = _googleSignIn.currentUser?.email;
     if (id == null && (id = (await _googleSignIn.signInSilently())?.email) == null) {
-      log(TAG, 'signing in');
       id = (await _googleSignIn.signIn())?.email;
     }
     return Future.value(id?.replaceFirst('@gmail.com', ''));
   }
 
-  buyIptv() async {
+  buyIptv(bool afterCheckSubs) async {
     log(TAG, 'buy iptv');
-    if (id == null)
+    if (id == null && !afterCheckSubs) {
       await checkSubs();
+      buyIptv(true);
+    } else if (id == null && afterCheckSubs)
+      return;
     else {
       purchase.buy(id!, () => setState(() => _hasIPTV = true),
           () => setState(() => purchase.product?.status = ProductStatus.purchasable));
@@ -320,8 +319,12 @@ class _HomePageState extends State<HomePage> {
       connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
 
   Future<String?> appleSignIn() async {
-    final credential = await SignInWithApple.getAppleIDCredential(scopes: []);
-    return Future.value(credential.userIdentifier);
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(scopes: []);
+      return Future.value(credential.userIdentifier);
+    } on SignInWithAppleAuthorizationException {
+      return Future.value(null);
+    }
   }
 }
 
