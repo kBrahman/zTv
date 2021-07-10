@@ -18,11 +18,12 @@ dependencies:
   sqflite: ^2.0.0+3
   path: ^1.8.0
   flutter_vlc_player: ^6.0.2
-  in_app_purchase: ^1.0.5
+  in_app_purchase: ^1.0.6
   firebase_core: ^1.0.3
   cloud_firestore: ^2.2.1
   google_sign_in: ^5.0.4
   sign_in_with_apple: ^3.0.0
+  shared_preferences: ^2.0.6
   flutter_localizations:
     sdk: flutter
 

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:file_picker/file_picker.dart';
@@ -11,7 +9,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ztv/model/purchasable_product.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/util/ztv_purchase.dart';
@@ -23,15 +21,19 @@ import 'l10n/locale.dart';
 
 var colorCodes = {
   50: Color.fromRGBO(247, 0, 15, .1),
-  for (var i = 100; i < 1000; i += 100) i: Color.fromRGBO(247, 0, 15, (i + 100) / 1000)
+  for (var i = 100; i < 1000; i += 100)
+    i: Color.fromRGBO(247, 0, 15, (i + 100) / 1000)
 };
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   InAppPurchaseAndroidPlatformAddition.enablePendingPurchases();
   String data = await rootBundle.loadString('assets/local.properties');
-  var iterable = data.split('\n').where((element) => !element.startsWith('#') && element.isNotEmpty);
-  var props = Map.fromIterable(iterable, key: (v) => v.split('=')[0], value: (v) => v.split('=')[1]);
+  var iterable = data
+      .split('\n')
+      .where((element) => !element.startsWith('#') && element.isNotEmpty);
+  var props = Map.fromIterable(iterable,
+      key: (v) => v.split('=')[0], value: (v) => v.split('=')[1]);
   runApp(Ztv(props['playlist']));
 }
 
@@ -52,9 +54,10 @@ class Ztv extends StatelessWidget {
           AppLocalizations.delegate
         ],
         supportedLocales: LOCALES,
-        localeResolutionCallback: (locale, supportedLocales) => supportedLocales.firstWhere(
-            (element) => element.languageCode == locale?.languageCode,
-            orElse: () => supportedLocales.first),
+        localeResolutionCallback: (locale, supportedLocales) =>
+            supportedLocales.firstWhere(
+                (element) => element.languageCode == locale?.languageCode,
+                orElse: () => supportedLocales.first),
         theme: ThemeData(
           primarySwatch: MaterialColor(0XFFF7000F, colorCodes),
           visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -75,6 +78,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   static const TAG = '_HomePageState';
   static const YEAR_IN_SEC = 365 * 24 * 3600;
+  static const HAS_IPTV = 'has_iptv';
 
   var _link;
   var _dataHolder;
@@ -97,8 +101,17 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     checkConnection();
-    checkSubs();
+    hasIPTV();
     super.initState();
+  }
+
+  hasIPTV() async {
+    var prefs = await SharedPreferences.getInstance();
+    await purchase.loadPurchases();
+    setState(() {
+      _hasIPTV = prefs.getBool(HAS_IPTV) ?? false;
+    });
+    log(TAG, 'hasIPTV =>$_hasIPTV');
   }
 
   void _play() {
@@ -108,7 +121,10 @@ class _HomePageState extends State<HomePage> {
     if (_link == null || _link is List) _link = _txtFieldTxt;
     if (_link == null || _link.trim().isEmpty) return;
     print('play=>$_link');
-    if (_connectedToInet && (_link.endsWith('=m3u') || _link.contains('download.php?id') || _link.endsWith('.m3u')))
+    if (_connectedToInet &&
+        (_link.endsWith('=m3u') ||
+            _link.contains('download.php?id') ||
+            _link.endsWith('.m3u')))
       setState(() {
         uiState = UIState.PLAYLIST;
         stateStack.add(UIState.PLAYLIST);
@@ -120,7 +136,8 @@ class _HomePageState extends State<HomePage> {
       });
     else {
       final snackBar = SnackBar(
-          content: Text(AppLocalizations.of(context)?.no_inet ?? 'No internet'), duration: Duration(seconds: 1));
+          content: Text(AppLocalizations.of(context)?.no_inet ?? 'No internet'),
+          duration: Duration(seconds: 1));
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
     _txtFieldTxt = _link;
@@ -131,8 +148,17 @@ class _HomePageState extends State<HomePage> {
     return WillPopScope(onWillPop: willPop, child: getChild());
   }
 
-  void onTap(urlOrChannel, List<Widget> data, double offset, String query, filterLanguage, filterCategory, title,
-      filterLanguages, categories, hasFilter) {
+  void onTap(
+      urlOrChannel,
+      List<Widget> data,
+      double offset,
+      String query,
+      filterLanguage,
+      filterCategory,
+      title,
+      filterLanguages,
+      categories,
+      hasFilter) {
     log(TAG, 'on tap category=>$filterCategory');
     log(TAG, 'on tap filterLanguage=>$filterLanguage');
     this._filterLanguage = filterLanguage;
@@ -174,12 +200,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _browse() async {
-    FilePickerResult? result = await FilePicker.platform
-        .pickFiles(type: FileType.custom, allowedExtensions: ['flac', 'mp4', 'm3u', 'mp3', 'm3u']);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['flac', 'mp4', 'm3u', 'mp3', 'm3u']);
     if (result != null) setState(() => _txtFieldTxt = result.files.single.path);
   }
 
-  bool isLocalFile(String link) => link.endsWith('.flac') || link.endsWith('.mp4') || link.endsWith('.mp3');
+  bool isLocalFile(String link) =>
+      link.endsWith('.flac') || link.endsWith('.mp4') || link.endsWith('.mp3');
 
   Widget getChild() {
     switch (uiState) {
@@ -197,31 +225,40 @@ class _HomePageState extends State<HomePage> {
                         uiState = UIState.MY_PLAYLISTS;
                         stateStack.add(UIState.MY_PLAYLISTS);
                       })),
-              IconButton(color: Colors.white, icon: Icon(Icons.folder), onPressed: _browse)
+              IconButton(
+                  color: Colors.white,
+                  icon: Icon(Icons.folder),
+                  onPressed: _browse)
             ],
           ),
           body: Column(
             children: [
               if (_hasIPTV == false && purchase.product != null)
                 Text(purchase.product!.status == ProductStatus.purchasable
-                    ? AppLocalizations.of(context)?.get_iptv_txt(purchase.product!.price) ??
+                    ? AppLocalizations.of(context)
+                            ?.get_iptv_txt(purchase.product!.price) ??
                         'Get 10000+ channels only for ${purchase.product!.price}/year'
-                    : AppLocalizations.of(context)?.processing ?? 'Processing...'),
+                    : AppLocalizations.of(context)?.processing ??
+                        'Processing...'),
               if (_hasIPTV != null && purchase.product != null)
                 TextButton(
-                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
+                    style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all(colorCodes[900])),
                     onPressed: () => _hasIPTV ? myIptv() : buyIptv(false),
                     child: Text(
                         _hasIPTV
                             ? AppLocalizations.of(context)?.my_iptv ?? 'MY IPTV'
-                            : AppLocalizations.of(context)?.buy_iptv ?? 'BUY IPTV',
+                            : AppLocalizations.of(context)?.buy_iptv ??
+                                'BUY IPTV',
                         style: TextStyle(color: Colors.white))),
               Expanded(
                   child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    AppLocalizations.of(context)?.link ?? 'Paste your link here',
+                    AppLocalizations.of(context)?.link ??
+                        'Paste your link here',
                     style: Theme.of(context).textTheme.headline5,
                   ),
                   Padding(
@@ -229,7 +266,8 @@ class _HomePageState extends State<HomePage> {
                       child: TextField(
                         onChanged: (String txt) => _link = txt,
                         decoration: InputDecoration(
-                            hintText: AppLocalizations.of(context)?.link_val ?? 'Video URL or IPTV playlist URL'),
+                            hintText: AppLocalizations.of(context)?.link_val ??
+                                'Video URL or IPTV playlist URL'),
                         controller: TextEditingController(text: _txtFieldTxt),
                       )),
                 ],
@@ -243,15 +281,35 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       case UIState.PLAYLIST:
-        return PlaylistWidget(_link, onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _filterLanguages, _filterCategories, _hasFilter, true);
+        return PlaylistWidget(
+            _link,
+            onTap,
+            _offset,
+            _query,
+            _filterLanguage,
+            _filterCategory,
+            _txtFieldTxt,
+            _filterLanguages,
+            _filterCategories,
+            _hasFilter,
+            true);
       case UIState.PLAYER:
         return Player(_link.trim(), _title);
       case UIState.MY_PLAYLISTS:
         return MyPlaylists(onPlaylistTap);
       case UIState.MY_IPTV:
-        return PlaylistWidget(_link, onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _filterLanguages, _filterCategories, _hasFilter, false);
+        return PlaylistWidget(
+            _link,
+            onTap,
+            _offset,
+            _query,
+            _filterLanguage,
+            _filterCategory,
+            _txtFieldTxt,
+            _filterLanguages,
+            _filterCategories,
+            _hasFilter,
+            false);
     }
   }
 
@@ -270,23 +328,25 @@ class _HomePageState extends State<HomePage> {
       var exists = value.exists;
       log(TAG, 'exists=>$exists');
       setState(() {
-        _hasIPTV = exists && Timestamp.now().seconds - (value['time'] as Timestamp).seconds < YEAR_IN_SEC;
+        _hasIPTV = exists &&
+            Timestamp.now().seconds - (value['time'] as Timestamp).seconds <
+                YEAR_IN_SEC;
       });
     });
     // FirebaseFirestore.instance.doc('user/udeulan342').delete();
   }
 
-  Future<String?> signIn() async => Platform.isAndroid ? await googleSignIn() : await appleSignIn();
-
-  Future<String> googleSignIn() async {
+  Future<String> signIn() async {
     GoogleSignIn _googleSignIn = GoogleSignIn(scopes: <String>['email']);
     final signedIn = await _googleSignIn.isSignedIn();
-    log(TAG, 'is signed in=>$signedIn, current user=>${_googleSignIn.currentUser}');
+    log(TAG,
+        'is signed in=>$signedIn, current user=>${_googleSignIn.currentUser}');
     id = _googleSignIn.currentUser?.email;
-    if (id == null && (id = (await _googleSignIn.signInSilently())?.email) == null) {
+    if (id == null &&
+        (id = (await _googleSignIn.signInSilently())?.email) == null) {
       id = (await _googleSignIn.signIn())?.email;
     }
-    return Future.value(id?.replaceFirst('@gmail.com', ''));
+    return Future.value(id);
   }
 
   buyIptv(bool afterCheckSubs) async {
@@ -297,8 +357,15 @@ class _HomePageState extends State<HomePage> {
     } else if (id == null && afterCheckSubs)
       return;
     else {
-      purchase.buy(id!, () => setState(() => _hasIPTV = true),
-          () => setState(() => purchase.product?.status = ProductStatus.purchasable));
+      purchase.buy(
+          id!,
+          () => setState(() {
+                _hasIPTV = true;
+                SharedPreferences.getInstance()
+                    .then((value) => value.setBool(HAS_IPTV, _hasIPTV));
+              }),
+          () => setState(
+              () => purchase.product?.status = ProductStatus.purchasable));
       setState(() => purchase.product?.status = ProductStatus.pending);
     }
   }
@@ -315,17 +382,9 @@ class _HomePageState extends State<HomePage> {
     Connectivity().onConnectivityChanged.listen((r) => setConnected(r));
   }
 
-  void setConnected(ConnectivityResult connectivityResult) => _connectedToInet =
-      connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
-
-  Future<String?> appleSignIn() async {
-    try {
-      final credential = await SignInWithApple.getAppleIDCredential(scopes: []);
-      return Future.value(credential.userIdentifier);
-    } on SignInWithAppleAuthorizationException {
-      return Future.value(null);
-    }
-  }
+  void setConnected(ConnectivityResult connectivityResult) =>
+      _connectedToInet = connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi;
 }
 
 enum UIState { MAIN, PLAYLIST, PLAYER, MY_PLAYLISTS, MY_IPTV }

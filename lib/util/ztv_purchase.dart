@@ -28,7 +28,6 @@ class ZtvPurchases extends ChangeNotifier {
       onDone: _updateStreamOnDone,
       onError: _updateStreamOnError,
     );
-    loadPurchases();
   }
 
   @override
@@ -71,7 +70,7 @@ class ZtvPurchases extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    const ids = <String>{'ztv_channels_product'};
+    const ids = <String>{'ztv_channels'};
     final response = await iapConnection.queryProductDetails(ids);
     response.notFoundIDs.forEach((element) {
       print('Purchase $element not found');
