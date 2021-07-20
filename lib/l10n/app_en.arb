@@ -19,7 +19,7 @@
   "@my_iptv": {},
   "buy_iptv": "BUY IPTV",
   "@buy_iptv": {},
-  "get_iptv_txt": "Get 10000+ channels only for {price}/year",
+  "get_iptv_txt": "Get 8000+ channels only for {price}/year",
   "@get_iptv_txt": {
     "placeholders": {
       "price": {
