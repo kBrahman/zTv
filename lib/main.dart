@@ -219,11 +219,14 @@ class _HomePageState extends State<HomePage> {
           body: Column(
             children: [
               if (_hasIPTV == false && purchase.product != null)
-                Text(purchase.product!.status == ProductStatus.purchasable
-                    ? AppLocalizations.of(context)
-                            ?.get_iptv_txt(purchase.product!.price) ??
-                        'Get 10000+ channels only for ${purchase.product!.price}/year'
-                    : AppLocalizations.of(context)?.processing ?? 'Processing...'),
+                Padding(
+                    padding: EdgeInsets.only(left: 4, right: 4),
+                    child: Text(purchase.product!.status == ProductStatus.purchasable
+                        ? AppLocalizations.of(context)
+                        ?.get_iptv_txt(purchase.product!.price, CHANNEL_COUNT) ??
+                        'Get $CHANNEL_COUNT channels only for ${purchase.product!.price}/year'
+                        : AppLocalizations.of(context)?.processing ?? 'Processing...',
+                        style: TextStyle(fontSize: 13))),
               if (_hasIPTV != null && purchase.product != null)
                 TextButton(
                     style: ButtonStyle(

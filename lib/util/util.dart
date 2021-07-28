@@ -36,4 +36,6 @@ const MUSIC = 'Music';
 const DB_NAME = 'ztv.db';
 const TABLE_PLAYLIST = 'playlist';
 
+const CHANNEL_COUNT = "8000";
+
 log(String tag, String? msg) => print('$tag:$msg');
