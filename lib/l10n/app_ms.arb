@@ -1,0 +1,27 @@
+{
+  "link_val": "URL video atau URL senarai main IPTV",
+  "link": "Tampal pautan anda di sini",
+  "no_inet": "Tiada akses internet",
+  "audio": "Ini adalah fail audio!",
+  "my_playlists": "Senarai main saya",
+  "ch_offline": "Saluran ini kini di luar talian. Datang kemudian sila",
+  "broken_link": "Pautan terputus!",
+  "save_playlist": "Simpan senarai main",
+  "my_iptv": "IPTV SAYA",
+  "buy_iptv": "BELI IPTV",
+  "get_iptv_txt": "Dapatkan akses ke {channel_count} saluran dengan harga {price} setiap tahun",
+  "@get_iptv_txt": {
+    "placeholders": {
+      "price": {
+        "type:": "String"
+      },
+      "channel_count": {
+        "type": "String"
+      }
+    }
+  },
+  "processing": "Memproses...",
+  "language": "Bahasa",
+  "category": "Kategori",
+  "filter": "Tapis saluran"
+}

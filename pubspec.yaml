@@ -1,7 +1,7 @@
 name: ztv
 description: IPTV
 publish_to: 'none'
-version: 2.0.3+15
+version: 2.0.4+16
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -19,10 +19,8 @@ dependencies:
   path: ^1.8.0
   flutter_vlc_player: ^6.0.2
   in_app_purchase: ^1.0.6
-  firebase_core: ^1.0.3
-  cloud_firestore: ^2.2.1
+  cloud_firestore: ^2.4.0
   google_sign_in: ^5.0.4
-  sign_in_with_apple: ^3.0.0
   shared_preferences: ^2.0.6
   flutter_localizations:
     sdk: flutter
@@ -37,10 +35,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter.
 flutter:
   assets:
     - assets/local.properties

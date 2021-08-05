@@ -31,5 +31,8 @@
     }
   },
   "processing": "Processing...",
-  "@processing": {}
+  "@processing": {},
+  "language": "Language",
+  "category": "Category",
+  "filter": "Filter"
 }

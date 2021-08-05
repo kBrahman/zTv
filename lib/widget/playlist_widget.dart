@@ -22,7 +22,7 @@ class PlaylistWidget extends StatefulWidget {
   var _language;
   var _category;
   final _txtFieldTxt;
-  final _dropDownLanguages;
+  final List<String> _dropDownLanguages;
   final List<String> _dropDownCategories;
   var hasFilter;
   var hasSavePlayList;
@@ -36,8 +36,6 @@ class PlaylistWidget extends StatefulWidget {
 
 class _PlaylistWidgetState extends State<PlaylistWidget> {
   static const TAG = '_PlaylistState';
-
-  late Future<List<Widget>> future;
   late ScrollController _scrollController;
   var showSearchView = false;
   var ctr;
@@ -46,7 +44,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   @override
   void initState() {
     _scrollController = ScrollController(initialScrollOffset: widget._offset);
-    future = getChannels(widget._linkOrList);
     ctr = TextEditingController(text: widget._query);
     super.initState();
   }
@@ -119,7 +116,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         future: (widget._query == null || widget._query?.isEmpty == true) &&
                 widget._language == ANY_LANGUAGE &&
                 widget._category == ANY_CATEGORY
-            ? future
+            ? getChannels(widget._linkOrList)
             : getFilteredChannels(getChannels(widget._linkOrList), widget._query ?? ''),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
@@ -146,6 +143,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         if (ch.isOff) {
           link.remove(ch);
         } else {
+          ch.filterLanguage = widget._language;
+          ch.filterCategory = widget._category;
           ch.sc = _scrollController;
         }
       });
@@ -188,8 +187,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         final channel = Channel(
             title,
             link,
-            (String url, offset, query, language, category) => widget.onTap(url, list, offset, query, language,
-                category, title, widget._dropDownLanguages, widget._dropDownCategories, widget.hasFilter));
+            (String url, offset, query, language, category) => widget.onTap(url, list, offset, query, language, category,
+                title, widget._dropDownLanguages, widget._dropDownCategories, widget.hasFilter));
         channel.sc = _scrollController;
         if (category != null) channel.category = category;
         if (title.contains(RegExp('FRANCE|\\|FR\\|'))) {
@@ -235,20 +234,27 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         list.add(channel);
       }
     }
+    widget._dropDownCategories.sort((e1, e2) => e1 == ANY_CATEGORY
+        ? -1
+        : e2 == ANY_CATEGORY
+            ? 1
+            : e1.compareTo(e2));
+    widget._dropDownLanguages.sort((e1, e2) => e1 == ANY_LANGUAGE
+        ? -1
+        : e2 == ANY_LANGUAGE
+            ? 1
+            : e1.compareTo(e2));
     setState(() => widget.hasFilter = (widget._dropDownCategories.length > 1 || widget._dropDownLanguages.length > 1));
     widget._linkOrList = list;
     return Future.value(list);
   }
 
-  Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) =>
-      f.then((list) => list.where((element) {
-            element.query = widget._query ?? '';
-            element.filterLanguage = widget._language;
-            element.filterCategory = widget._category;
-            return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
-                (widget._language != ANY_LANGUAGE ? element.languages.contains(widget._language) : true) &&
-                (widget._category != ANY_CATEGORY ? element.category == widget._category : true);
-          }).toList());
+  Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) => f.then((list) => list.where((element) {
+        element.query = widget._query ?? '';
+        return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
+            (widget._language != ANY_LANGUAGE ? element.languages.contains(widget._language) : true) &&
+            (widget._category != ANY_CATEGORY ? element.category == widget._category : true);
+      }).toList());
 
   void dialog(ctx, submit, clear) => showDialog(
       context: ctx,
@@ -316,10 +322,10 @@ class ZtvDialog extends StatefulWidget {
   final clear;
   var language;
   var category;
-  final List<String> availableLanguages;
-  final availableCategories;
+  final List<String> dropDownLanguages;
+  final dropDownCategories;
 
-  ZtvDialog(this.submit, this.clear, this.language, this.category, this.availableLanguages, this.availableCategories);
+  ZtvDialog(this.submit, this.clear, this.language, this.category, this.dropDownLanguages, this.dropDownCategories);
 
   @override
   State<StatefulWidget> createState() => DialogState();
@@ -330,10 +336,12 @@ class DialogState extends State<ZtvDialog> {
 
   @override
   Widget build(BuildContext context) {
-    var languageSpinnerAndTitle = SpinnerAndTitle(widget.language, 'Language', widget.availableLanguages);
-    var categorySpinnerAndTitle = SpinnerAndTitle(widget.category, 'Category', widget.availableCategories);
+    var languageSpinnerAndTitle =
+        SpinnerAndTitle(widget.language, AppLocalizations.of(context)?.language ?? 'Language', widget.dropDownLanguages);
+    var categorySpinnerAndTitle =
+        SpinnerAndTitle(widget.category, AppLocalizations.of(context)?.category ?? 'Category', widget.dropDownCategories);
     return AlertDialog(
-        title: Padding(child: Text('Filter'), padding: EdgeInsets.only(bottom: 16)),
+        title: Padding(child: Text(AppLocalizations.of(context)?.filter ??'Filter'), padding: EdgeInsets.only(bottom: 16)),
         contentPadding: const EdgeInsets.only(left: 4, right: 4),
         actions: [
           TextButton(

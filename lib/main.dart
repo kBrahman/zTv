@@ -361,7 +361,14 @@ class _HomePageState extends State<HomePage> {
   void checkConnection() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
     setConnected(connectivityResult);
-    Connectivity().onConnectivityChanged.listen((r) => setConnected(r));
+    Connectivity().onConnectivityChanged.listen((r) {
+      if (_hasIPTV == true)
+        setState(() => setConnected(r));
+      else {
+        setConnected(r);
+        hasIPTV();
+      }
+    });
   }
 
   void setConnected(ConnectivityResult connectivityResult) =>
