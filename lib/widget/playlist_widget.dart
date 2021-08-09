@@ -26,8 +26,9 @@ class PlaylistWidget extends StatefulWidget {
   final List<String> _dropDownCategories;
   var hasFilter;
   var hasSavePlayList;
+  final _xLink;
 
-  PlaylistWidget(this._linkOrList, this.onTap, this._offset, this._query, this._language, this._category,
+  PlaylistWidget(this._linkOrList, this._xLink, this.onTap, this._offset, this._query, this._language, this._category,
       this._txtFieldTxt, this._dropDownLanguages, this._dropDownCategories, this.hasFilter, this.hasSavePlayList);
 
   @override
@@ -116,8 +117,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         future: (widget._query == null || widget._query?.isEmpty == true) &&
                 widget._language == ANY_LANGUAGE &&
                 widget._category == ANY_CATEGORY
-            ? getChannels(widget._linkOrList)
-            : getFilteredChannels(getChannels(widget._linkOrList), widget._query ?? ''),
+            ? getChannels(widget._linkOrList, widget._xLink)
+            : getFilteredChannels(getChannels(widget._linkOrList, widget._xLink), widget._query ?? ''),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return linkBroken
@@ -137,7 +138,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     );
   }
 
-  Future<List<Channel>> getChannels(link) {
+  Future<List<Channel>> getChannels(link, xLink) {
+    log(TAG, 'getChannels');
     if (link is List<Channel>) {
       link.forEach((ch) {
         if (ch.isOff) {
@@ -152,12 +154,16 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     } else if (link.startsWith('/')) {
       return Future.value(fileToPlaylist(link));
     }
-    return http.get(Uri.parse(widget._linkOrList)).then((value) {
+    return http.get(Uri.parse(widget._linkOrList)).then((value) async {
       if (value.statusCode == 404) {
         linkBroken = true;
         return Future.value(null);
       }
-      final data = Utf8Decoder().convert(value.bodyBytes);
+      var data = Utf8Decoder().convert(value.bodyBytes);
+      if (xLink != null) {
+        final xData = await http.get(Uri.parse(xLink));
+        data += Utf8Decoder().convert(xData.bodyBytes);
+      }
       return parse(data);
     }, onError: (err) {
       linkBroken = true;
@@ -212,18 +218,18 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
           }
         }
         if (title.contains(RegExp('SPORTS?'))) {
-          channel.category = SPORT;
+          channel.category = SPORTS;
         } else if (title.contains('News')) {
           channel.category = NEWS;
-        } else if (title.contains(RegExp('XXX|Adult|Brazzers'))) {
-          channel.category = ADULT;
+        } else if (title.contains(RegExp('XXX|Brazzers'))) {
+          channel.category = XXX;
         } else if (title.contains(RegExp('BABY|CARTOON|JEUNESSE'))) {
           channel.category = KIDS;
         } else if (title.contains('MTV')) {
           channel.category = MUSIC;
         }
-        if (link.contains(RegExp('movie|CINE'))) {
-          channel.category = MOVIE;
+        if (title.toLowerCase().contains('weather')) {
+          channel.category = WEATHER;
         }
         var data = split.first;
         setChProps(data.split(' '), channel);

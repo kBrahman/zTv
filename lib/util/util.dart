@@ -1,7 +1,6 @@
 const ANY_LANGUAGE = 'Any language';
 const ALBANIAN = 'Albanian';
 const ARABIC = "Arabic";
-const BULGARIAN = 'Bulgarian';
 const CHINESE = 'Chinese';
 const DUTCH = 'Dutch';
 const ENGLISH = 'English';
@@ -26,10 +25,10 @@ const UKRAINIAN = 'Ukrainian';
 const URDU = 'Urdu';
 
 const ANY_CATEGORY = 'Any category';
-const SPORT = 'Sport';
+const SPORTS = 'Sports';
 const NEWS = 'News';
-const MOVIE = 'Movie';
-const ADULT = 'Adult';
+const WEATHER = 'Weather';
+const XXX = 'XXX';
 const KIDS = 'Kids';
 const MUSIC = 'Music';
 

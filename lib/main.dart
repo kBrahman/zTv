@@ -28,19 +28,18 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   InAppPurchaseAndroidPlatformAddition.enablePendingPurchases();
   String data = await rootBundle.loadString('assets/local.properties');
-  var iterable =
-      data.split('\n').where((element) => !element.startsWith('#') && element.isNotEmpty);
-  var props = Map.fromIterable(iterable,
-      key: (v) => v.split('=')[0], value: (v) => v.split('=')[1]);
-  runApp(Ztv(props['playlist']));
+  var iterable = data.split('\n').where((element) => !element.startsWith('#') && element.isNotEmpty);
+  var props = Map.fromIterable(iterable, key: (v) => v.split('=')[0], value: (v) => v.split('=')[1]);
+  runApp(Ztv(props['playlist'], props['x_list']));
 }
 
 class Ztv extends StatelessWidget {
   static const TAG = 'zTv_Ztv';
 
   final playlist;
+  final xList;
 
-  const Ztv(this.playlist);
+  const Ztv(this.playlist, this.xList);
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -53,20 +52,20 @@ class Ztv extends StatelessWidget {
         ],
         supportedLocales: LOCALES,
         localeResolutionCallback: (locale, supportedLocales) => supportedLocales
-            .firstWhere((element) => element.languageCode == locale?.languageCode,
-                orElse: () => supportedLocales.first),
+            .firstWhere((element) => element.languageCode == locale?.languageCode, orElse: () => supportedLocales.first),
         theme: ThemeData(
           primarySwatch: MaterialColor(0XFFF7000F, colorCodes),
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: HomePage(playlist),
+        home: HomePage(playlist, xList),
       );
 }
 
 class HomePage extends StatefulWidget {
   final playlist;
+  final xList;
 
-  const HomePage(this.playlist, {Key? key}) : super(key: key);
+  const HomePage(this.playlist, this.xList, {Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -78,6 +77,7 @@ class _HomePageState extends State<HomePage> {
   static const HAS_IPTV = 'has_iptv';
 
   var _link;
+  var _xLink;
   var _dataHolder;
   var _offset = 0.0;
   var _txtFieldTxt;
@@ -118,10 +118,7 @@ class _HomePageState extends State<HomePage> {
     if (_link == null || _link is List) _link = _txtFieldTxt;
     if (_link == null || _link.trim().isEmpty) return;
     print('play=>$_link');
-    if (_connectedToInet &&
-        (_link.endsWith('=m3u') ||
-            _link.contains('download.php?id') ||
-            _link.endsWith('.m3u')))
+    if (_connectedToInet && (_link.endsWith('=m3u') || _link.contains('download.php?id') || _link.endsWith('.m3u')))
       setState(() {
         uiState = UIState.PLAYLIST;
         stateStack.add(UIState.PLAYLIST);
@@ -132,9 +129,8 @@ class _HomePageState extends State<HomePage> {
         stateStack.add(UIState.PLAYER);
       });
     else {
-      final snackBar = SnackBar(
-          content: Text(AppLocalizations.of(context)?.no_inet ?? 'No internet'),
-          duration: Duration(seconds: 1));
+      final snackBar =
+          SnackBar(content: Text(AppLocalizations.of(context)?.no_inet ?? 'No internet'), duration: Duration(seconds: 1));
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
     _txtFieldTxt = _link;
@@ -145,8 +141,8 @@ class _HomePageState extends State<HomePage> {
     return WillPopScope(onWillPop: willPop, child: getChild());
   }
 
-  void onTap(urlOrChannel, List<Widget> data, double offset, String query, filterLanguage,
-      filterCategory, title, filterLanguages, categories, hasFilter) {
+  void onTap(urlOrChannel, List<Widget> data, double offset, String query, filterLanguage, filterCategory, title,
+      filterLanguages, categories, hasFilter) {
     log(TAG, 'on tap category=>$filterCategory');
     log(TAG, 'on tap filterLanguage=>$filterLanguage');
     this._filterLanguage = filterLanguage;
@@ -188,13 +184,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _browse() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom, allowedExtensions: ['flac', 'mp4', 'm3u', 'mp3', 'm3u']);
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['flac', 'mp4', 'm3u', 'mp3', 'm3u']);
     if (result != null) setState(() => _txtFieldTxt = result.files.single.path);
   }
 
-  bool isLocalFile(String link) =>
-      link.endsWith('.flac') || link.endsWith('.mp4') || link.endsWith('.mp3');
+  bool isLocalFile(String link) => link.endsWith('.flac') || link.endsWith('.mp4') || link.endsWith('.mp3');
 
   Widget getChild() {
     switch (uiState) {
@@ -212,8 +207,7 @@ class _HomePageState extends State<HomePage> {
                         uiState = UIState.MY_PLAYLISTS;
                         stateStack.add(UIState.MY_PLAYLISTS);
                       })),
-              IconButton(
-                  color: Colors.white, icon: Icon(Icons.folder), onPressed: _browse)
+              IconButton(color: Colors.white, icon: Icon(Icons.folder), onPressed: _browse)
             ],
           ),
           body: Column(
@@ -221,16 +215,15 @@ class _HomePageState extends State<HomePage> {
               if (_hasIPTV == false && purchase.product != null)
                 Padding(
                     padding: EdgeInsets.only(left: 4, right: 4),
-                    child: Text(purchase.product!.status == ProductStatus.purchasable
-                        ? AppLocalizations.of(context)
-                        ?.get_iptv_txt(purchase.product!.price, CHANNEL_COUNT) ??
-                        'Get $CHANNEL_COUNT channels only for ${purchase.product!.price}/year'
-                        : AppLocalizations.of(context)?.processing ?? 'Processing...',
+                    child: Text(
+                        purchase.product!.status == ProductStatus.purchasable
+                            ? AppLocalizations.of(context)?.get_iptv_txt(purchase.product!.price, CHANNEL_COUNT) ??
+                                'Get $CHANNEL_COUNT channels only for ${purchase.product!.price}/year'
+                            : AppLocalizations.of(context)?.processing ?? 'Processing...',
                         style: TextStyle(fontSize: 13))),
               if (_hasIPTV != null && purchase.product != null)
                 TextButton(
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(colorCodes[900])),
+                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
                     onPressed: () => _hasIPTV ? myIptv() : buyIptv(false),
                     child: Text(
                         _hasIPTV
@@ -250,8 +243,7 @@ class _HomePageState extends State<HomePage> {
                       child: TextField(
                         onChanged: (String txt) => _link = txt,
                         decoration: InputDecoration(
-                            hintText: AppLocalizations.of(context)?.link_val ??
-                                'Video URL or IPTV playlist URL'),
+                            hintText: AppLocalizations.of(context)?.link_val ?? 'Video URL or IPTV playlist URL'),
                         controller: TextEditingController(text: _txtFieldTxt),
                       )),
                 ],
@@ -265,35 +257,15 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       case UIState.PLAYLIST:
-        return PlaylistWidget(
-            _link,
-            onTap,
-            _offset,
-            _query,
-            _filterLanguage,
-            _filterCategory,
-            _txtFieldTxt,
-            _filterLanguages,
-            _filterCategories,
-            _hasFilter,
-            true);
+        return PlaylistWidget(_link, null, onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
+            _filterLanguages, _filterCategories, _hasFilter, true);
       case UIState.PLAYER:
         return Player(_link.trim(), _title);
       case UIState.MY_PLAYLISTS:
         return MyPlaylists(onPlaylistTap);
       case UIState.MY_IPTV:
-        return PlaylistWidget(
-            _link,
-            onTap,
-            _offset,
-            _query,
-            _filterLanguage,
-            _filterCategory,
-            _txtFieldTxt,
-            _filterLanguages,
-            _filterCategories,
-            _hasFilter,
-            false);
+        return PlaylistWidget(_link, _xLink, onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
+            _filterLanguages, _filterCategories, _hasFilter, false);
     }
   }
 
@@ -312,13 +284,11 @@ class _HomePageState extends State<HomePage> {
       var exists = value.exists;
       log(TAG, 'exists=>$exists');
       setState(() {
-        _hasIPTV = exists &&
-            Timestamp.now().seconds - (value['time'] as Timestamp).seconds < YEAR_IN_SEC;
+        _hasIPTV = exists && Timestamp.now().seconds - (value['time'] as Timestamp).seconds < YEAR_IN_SEC;
       });
       if (!_hasIPTV) buyIptv(true);
       SharedPreferences.getInstance().then((prefs) => prefs.setBool(HAS_IPTV, _hasIPTV));
     });
-    // FirebaseFirestore.instance.doc('user/udeulan342').delete();
   }
 
   Future<String> signIn() async {
@@ -326,10 +296,8 @@ class _HomePageState extends State<HomePage> {
     final signedIn = await _googleSignIn.isSignedIn();
     log(TAG, 'is signed in=>$signedIn, current user=>${_googleSignIn.currentUser}');
     id = _googleSignIn.currentUser?.email;
-    if (id == null && (id = (await _googleSignIn.signInSilently())?.email) == null) {
-      log(TAG,"signing in");
-      id = (await _googleSignIn.signIn())?.email;
-    }
+    if (id == null && (id = (await _googleSignIn.signInSilently())?.email) == null) id = (await _googleSignIn.signIn())?.email;
+
     return Future.value(id);
   }
 
@@ -344,8 +312,7 @@ class _HomePageState extends State<HomePage> {
           id!,
           () => setState(() {
                 _hasIPTV = true;
-                SharedPreferences.getInstance()
-                    .then((value) => value.setBool(HAS_IPTV, _hasIPTV));
+                SharedPreferences.getInstance().then((value) => value.setBool(HAS_IPTV, _hasIPTV));
               }),
           () => setState(() => purchase.product?.status = ProductStatus.purchasable));
       setState(() => purchase.product?.status = ProductStatus.pending);
@@ -354,6 +321,7 @@ class _HomePageState extends State<HomePage> {
 
   myIptv() {
     _link = widget.playlist;
+    _xLink = widget.xList;
     setState(() => uiState = UIState.MY_IPTV);
     stateStack.add(UIState.MY_IPTV);
   }
@@ -372,8 +340,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void setConnected(ConnectivityResult connectivityResult) =>
-      _connectedToInet = connectivityResult == ConnectivityResult.mobile ||
-          connectivityResult == ConnectivityResult.wifi;
+      _connectedToInet = connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
 }
 
 enum UIState { MAIN, PLAYLIST, PLAYER, MY_PLAYLISTS, MY_IPTV }
