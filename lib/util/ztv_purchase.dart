@@ -49,7 +49,7 @@ class ZtvPurchases extends ChangeNotifier {
     } else if (purchaseDetails.status == PurchaseStatus.error) onPurchaseError();
     if (purchaseDetails.pendingCompletePurchase) {
       iapConnection.completePurchase(purchaseDetails);
-      log(TAG,'complete purchase');
+      log(TAG, 'complete purchase');
     }
   }
 
@@ -77,6 +77,7 @@ class ZtvPurchases extends ChangeNotifier {
     });
     final products = response.productDetails.map((e) => PurchasableProduct(e)).toList();
     storeState = StoreState.AVAILABLE;
+    log(TAG, 'product list is empty=>${products.isEmpty}');
     product = products.first;
     log(TAG, product?.id);
   }

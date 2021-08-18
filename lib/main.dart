@@ -83,13 +83,13 @@ class _HomePageState extends State<HomePage> {
   var _txtFieldTxt;
   var _query;
   var _connectedToInet = true;
-  var _filterLanguage = ANY_LANGUAGE;
-  var _filterCategory = ANY_CATEGORY;
+  var _filterLanguage;
+  var _filterCategory;
   var uiState = UIState.MAIN;
   var _title = 'Player';
   final stateStack = [UIState.MAIN];
-  var _filterLanguages = [ANY_LANGUAGE];
-  var _filterCategories = [ANY_CATEGORY];
+  List<String> _droDownLanguages = [];
+  List<String> _dropDownCategories = [];
   var _hasFilter = false;
   var _hasIPTV;
   var purchase = ZtvPurchases();
@@ -113,8 +113,8 @@ class _HomePageState extends State<HomePage> {
 
   void _play() {
     if (_link is String && _link == widget.playlist) return;
-    _filterLanguages = [ANY_LANGUAGE];
-    _filterCategories = [ANY_CATEGORY];
+    _droDownLanguages = [];
+    _dropDownCategories = [];
     if (_link == null || _link is List) _link = _txtFieldTxt;
     if (_link == null || _link.trim().isEmpty) return;
     print('play=>$_link');
@@ -148,8 +148,8 @@ class _HomePageState extends State<HomePage> {
     this._filterLanguage = filterLanguage;
     this._filterCategory = filterCategory;
     this._title = title;
-    this._filterLanguages = filterLanguages;
-    this._filterCategories = categories;
+    this._droDownLanguages = filterLanguages;
+    this._dropDownCategories = categories;
     this._hasFilter = hasFilter;
     _dataHolder = data;
     _offset = offset;
@@ -176,8 +176,8 @@ class _HomePageState extends State<HomePage> {
       if (uiState != UIState.PLAYLIST && uiState != UIState.MY_IPTV) {
         _query = null;
         _offset = 0.0;
-        _filterLanguage = ANY_LANGUAGE;
-        _filterCategory = ANY_CATEGORY;
+        _filterLanguage = null;
+        _filterCategory = null;
       }
     });
     return Future.value(false);
@@ -220,7 +220,7 @@ class _HomePageState extends State<HomePage> {
                             ? AppLocalizations.of(context)?.get_iptv_txt(purchase.product!.price, CHANNEL_COUNT) ??
                                 'Get $CHANNEL_COUNT channels only for ${purchase.product!.price}/year'
                             : AppLocalizations.of(context)?.processing ?? 'Processing...',
-                        style: TextStyle(fontSize: 13))),
+                        style: TextStyle(fontSize: 14))),
               if (_hasIPTV != null && purchase.product != null)
                 TextButton(
                     style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
@@ -258,14 +258,14 @@ class _HomePageState extends State<HomePage> {
         );
       case UIState.PLAYLIST:
         return PlaylistWidget(_link, null, onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _filterLanguages, _filterCategories, _hasFilter, true);
+            _droDownLanguages, _dropDownCategories, _hasFilter, true);
       case UIState.PLAYER:
         return Player(_link.trim(), _title);
       case UIState.MY_PLAYLISTS:
         return MyPlaylists(onPlaylistTap);
       case UIState.MY_IPTV:
         return PlaylistWidget(_link, _xLink, onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _filterLanguages, _filterCategories, _hasFilter, false);
+            _droDownLanguages, _dropDownCategories, _hasFilter, false);
     }
   }
 

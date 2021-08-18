@@ -6,8 +6,8 @@ class Channel extends StatelessWidget {
   static const TAG = 'Channel';
   final String url;
   final String title;
-  var languages = [ANY_LANGUAGE];
-  var category = ANY_CATEGORY;
+  final languages = [];
+  var category;
   final tap;
   var isOff = false;
   ScrollController? sc;

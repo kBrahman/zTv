@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import 'package:ztv/model/playlist.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/widget/channel.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PlaylistWidget extends StatefulWidget {
   var _linkOrList;
@@ -19,17 +19,28 @@ class PlaylistWidget extends StatefulWidget {
   final _offset;
 
   String? _query;
-  var _language;
-  var _category;
+  var _filterLanguage;
+  var _filterCategory;
   final _txtFieldTxt;
-  final List<String> _dropDownLanguages;
-  final List<String> _dropDownCategories;
+  List<String> _dropDownLanguages;
+  List<String> _dropDownCategories;
   var hasFilter;
   var hasSavePlayList;
   final _xLink;
 
-  PlaylistWidget(this._linkOrList, this._xLink, this.onTap, this._offset, this._query, this._language, this._category,
-      this._txtFieldTxt, this._dropDownLanguages, this._dropDownCategories, this.hasFilter, this.hasSavePlayList);
+  PlaylistWidget(
+      this._linkOrList,
+      this._xLink,
+      this.onTap,
+      this._offset,
+      this._query,
+      this._filterLanguage,
+      this._filterCategory,
+      this._txtFieldTxt,
+      this._dropDownLanguages,
+      this._dropDownCategories,
+      this.hasFilter,
+      this.hasSavePlayList);
 
   @override
   State<StatefulWidget> createState() => _PlaylistWidgetState();
@@ -99,12 +110,12 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                   onPressed: () => dialog(
                           context,
                           (lan, cat) => setState(() {
-                                widget._language = lan;
-                                widget._category = cat;
+                                widget._filterLanguage = lan;
+                                widget._filterCategory = cat;
                                 log(TAG, "submit lan=>$lan; cat=>$cat");
                               }), () {
-                        widget._language = ANY_LANGUAGE;
-                        widget._category = ANY_CATEGORY;
+                        widget._filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
+                        widget._filterCategory = getLocalizedCategory(ANY_CATEGORY, context);
                       }))
               : SizedBox.shrink(),
           if (widget.hasSavePlayList)
@@ -115,16 +126,15 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
       ),
       body: FutureBuilder(
         future: (widget._query == null || widget._query?.isEmpty == true) &&
-                widget._language == ANY_LANGUAGE &&
-                widget._category == ANY_CATEGORY
+                (widget._filterLanguage == null || widget._filterLanguage == getLocalizedLanguage(ANY_LANGUAGE, context)) &&
+                (widget._filterCategory == null || widget._filterCategory == getLocalizedCategory(ANY_CATEGORY, context))
             ? getChannels(widget._linkOrList, widget._xLink)
             : getFilteredChannels(getChannels(widget._linkOrList, widget._xLink), widget._query ?? ''),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return linkBroken
                 ? Center(
-                    child: Text(AppLocalizations.of(context)?.broken_link ?? 'Link is broken!',
-                        style: TextStyle(fontSize: 25)))
+                    child: Text(AppLocalizations.of(context)?.broken_link ?? 'Link is broken!', style: TextStyle(fontSize: 25)))
                 : GridView.count(
                     crossAxisCount: MediaQuery.of(context).size.width >= 834 ? 4 : 3,
                     children: snapshot.data as List<Widget>,
@@ -141,12 +151,13 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   Future<List<Channel>> getChannels(link, xLink) {
     log(TAG, 'getChannels');
     if (link is List<Channel>) {
+      log(TAG, 'link is list');
       link.forEach((ch) {
         if (ch.isOff) {
           link.remove(ch);
         } else {
-          ch.filterLanguage = widget._language;
-          ch.filterCategory = widget._category;
+          ch.filterLanguage = widget._filterLanguage;
+          ch.filterCategory = widget._filterCategory;
           ch.sc = _scrollController;
         }
       });
@@ -174,6 +185,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   Future<List<Channel>> fileToPlaylist(link) => File(link).readAsString().then((value) => parse(value));
 
   Future<List<Channel>> parse(String data) async {
+    log(TAG, 'parse');
     final lines = data.split("\n");
     final list = <Channel>[];
     for (var i = 0; i < lines.length; i++) {
@@ -193,89 +205,130 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         final channel = Channel(
             title,
             link,
-            (String url, offset, query, language, category) => widget.onTap(url, list, offset, query, language, category,
-                title, widget._dropDownLanguages, widget._dropDownCategories, widget.hasFilter));
+            (String url, offset, query, language, category) => widget.onTap(url, list, offset, query, language, category, title,
+                widget._dropDownLanguages, widget._dropDownCategories, widget.hasFilter));
         channel.sc = _scrollController;
         if (category != null) channel.category = category;
         if (title.contains(RegExp('FRANCE|\\|FR\\|'))) {
-          channel.languages.add(FRENCH);
+          channel.languages.add(getLocalizedLanguage(FRENCH, context));
         } else if (title.contains(RegExp('\\|AR\\|'))) {
-          channel.languages.add(ARABIC);
+          channel.languages.add(getLocalizedLanguage(ARABIC, context));
         } else if (title.contains(RegExp('USA|5USA'))) {
-          channel.languages.add(ENGLISH);
+          channel.languages.add(getLocalizedLanguage(ENGLISH, context));
         } else if (title.contains('NL')) {
-          channel.languages.add(DUTCH);
+          channel.languages.add(getLocalizedLanguage(DUTCH, context));
         } else if (link.contains(RegExp('latino|\\|SP\\|'))) {
-          channel.languages.add(SPANISH);
+          channel.languages.add(getLocalizedLanguage(SPANISH, context));
         } else if (title.contains(':')) {
           switch (title.split(':').first) {
             case 'FR':
-              channel.languages.add(FRENCH);
+              channel.languages.add(getLocalizedLanguage(FRENCH, context));
               break;
             case 'TR':
-              channel.languages.add(TURKISH);
+              channel.languages.add(getLocalizedLanguage(TURKISH, context));
               break;
           }
         }
         if (title.contains(RegExp('SPORTS?'))) {
-          channel.category = SPORTS;
+          channel.category = getLocalizedCategory(SPORTS, context);
         } else if (title.contains('News')) {
-          channel.category = NEWS;
+          channel.category = getLocalizedCategory(NEWS, context);
         } else if (title.contains(RegExp('XXX|Brazzers'))) {
           channel.category = XXX;
         } else if (title.contains(RegExp('BABY|CARTOON|JEUNESSE'))) {
-          channel.category = KIDS;
+          channel.category = getLocalizedCategory(KIDS, context);
         } else if (title.contains('MTV')) {
-          channel.category = MUSIC;
+          channel.category = getLocalizedCategory(MUSIC, context);
         }
         if (title.toLowerCase().contains('weather')) {
-          channel.category = WEATHER;
+          channel.category = getLocalizedCategory(WEATHER, context);
         }
         var data = split.first;
-        setChProps(data.split(' '), channel);
+        setChannelProperties(data.split(' '), channel);
         for (final l in channel.languages) {
           if (!widget._dropDownLanguages.contains(l)) widget._dropDownLanguages.add(l);
         }
-        if (!widget._dropDownCategories.contains(channel.category)) widget._dropDownCategories.add(channel.category);
+        if (channel.category != null && !widget._dropDownCategories.contains(channel.category))
+          widget._dropDownCategories.add(channel.category);
         list.add(channel);
       }
     }
-    widget._dropDownCategories.sort((e1, e2) => e1 == ANY_CATEGORY
-        ? -1
-        : e2 == ANY_CATEGORY
-            ? 1
-            : e1.compareTo(e2));
-    widget._dropDownLanguages.sort((e1, e2) => e1 == ANY_LANGUAGE
-        ? -1
-        : e2 == ANY_LANGUAGE
-            ? 1
-            : e1.compareTo(e2));
+    log(TAG, 'cats before sorting=>${widget._dropDownCategories}');
+    widget._dropDownCategories.sort();
+    widget._dropDownCategories.insert(0, getLocalizedCategory(ANY_CATEGORY, context));
+    widget._dropDownLanguages.sort();
+    widget._dropDownLanguages.insert(0, getLocalizedLanguage(ANY_LANGUAGE, context));
+    widget._filterCategory = getLocalizedCategory(widget._filterCategory, context);
+    widget._filterLanguage = getLocalizedLanguage(widget._filterLanguage, context);
     setState(() => widget.hasFilter = (widget._dropDownCategories.length > 1 || widget._dropDownLanguages.length > 1));
     widget._linkOrList = list;
+    log(TAG, 'parse finished');
     return Future.value(list);
   }
 
   Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) => f.then((list) => list.where((element) {
+        log(TAG, 'get filtered channels');
         element.query = widget._query ?? '';
         return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
-            (widget._language != ANY_LANGUAGE ? element.languages.contains(widget._language) : true) &&
-            (widget._category != ANY_CATEGORY ? element.category == widget._category : true);
+            (widget._filterLanguage != getLocalizedLanguage(ANY_LANGUAGE, context)
+                ? element.languages.contains(widget._filterLanguage)
+                : true) &&
+            (widget._filterCategory != getLocalizedCategory(ANY_CATEGORY, context)
+                ? element.category == widget._filterCategory
+                : true);
       }).toList());
 
   void dialog(ctx, submit, clear) => showDialog(
       context: ctx,
-      builder: (_) => ZtvDialog(
-          submit, clear, widget._language, widget._category, widget._dropDownLanguages, widget._dropDownCategories));
+      builder: (_) => ZtvDialog(submit, clear, widget._filterLanguage, widget._filterCategory, widget._dropDownLanguages,
+          widget._dropDownCategories));
 
-  setChProps(List<String> data, Channel channel) {
+  setChannelProperties(List<String> data, Channel channel) {
     for (final item in data) {
       String str;
       if (item.startsWith('tvg-language') && (str = item.split('=').last.replaceAll('"', '')).isNotEmpty) {
-        channel.languages.addAll(str.split(';'));
+        channel.languages.addAll(str.split(';').map((e) => getLocalizedLanguage(e, context)));
+        if (channel.languages.contains(CASTILIAN)) {
+          channel.languages.remove(CASTILIAN);
+          channel.languages.add(getLocalizedLanguage(SPANISH, context));
+        } else if (channel.languages.contains(FARSI)) {
+          channel.languages.remove(FARSI);
+          channel.languages.add(getLocalizedLanguage(PERSIAN, context));
+        } else if (channel.languages.contains('Gernman')) {
+          channel.languages.remove('Gernman');
+          channel.languages.add(getLocalizedLanguage(GERMAN, context));
+        } else if (channel.languages.contains('Japan')) {
+          channel.languages.remove("Japan");
+          channel.languages.add(getLocalizedLanguage(JAPANESE, context));
+        } else if (channel.languages.contains('CA')) {
+          channel.languages.remove('CA');
+          channel.languages.add(getLocalizedLanguage(ENGLISH, context));
+        } else if (channel.languages.contains('Mandarin')) {
+          channel.languages.remove('Mandarin');
+          channel.languages.add(getLocalizedLanguage(CHINESE, context));
+        } else if (channel.languages.contains('Min')) {
+          channel.languages.remove('Min');
+          channel.languages.add(getLocalizedLanguage(CHINESE, context));
+        } else if (channel.languages.contains('Modern')) {
+          channel.languages.remove('Modern');
+          channel.languages.add(getLocalizedLanguage(GREEK, context));
+        } else if (channel.languages.contains('News')) {
+          channel.languages.remove('News');
+          channel.languages.add(getLocalizedLanguage(ENGLISH, context));
+        } else if (channel.languages.contains('Panjabi')) {
+          channel.languages.remove('Panjabi');
+          channel.languages.add(getLocalizedLanguage(PUNJABI, context));
+        } else if (channel.languages.contains('Western')) {
+          channel.languages.remove('Western');
+          channel.languages.add(getLocalizedLanguage(DUTCH, context));
+        } else if (channel.languages.contains('Yue')) {
+          channel.languages.remove('Yue');
+          channel.languages.add(getLocalizedLanguage(CHINESE, context));
+        }
       } else if (item.startsWith('tvg-logo') && (str = item.split('=').last.replaceAll('"', '')).isNotEmpty) {
         channel.logo = str;
       } else if (item.startsWith('group-title') && (str = item.split('=').last.replaceAll('"', '')).isNotEmpty) {
-        channel.category = str;
+        channel.category = getLocalizedCategory(str, context);
       }
     }
   }
@@ -316,7 +369,7 @@ class SaveDialog extends StatelessWidget {
   }
 
   Future<void> savePlaylist(Playlist playlist) async {
-    openDatabase(join(await getDatabasesPath(), DB_NAME), onCreate: (db, v) {
+    openDatabase(p.join(await getDatabasesPath(), DB_NAME), onCreate: (db, v) {
       return db.execute('CREATE TABLE playlist(name TEXT, link TEXT PRIMARY KEY)');
     }, version: 1)
         .then((db) => db.insert('playlist', playlist.toMap(), conflictAlgorithm: ConflictAlgorithm.replace));
@@ -347,16 +400,16 @@ class DialogState extends State<ZtvDialog> {
     var categorySpinnerAndTitle =
         SpinnerAndTitle(widget.category, AppLocalizations.of(context)?.category ?? 'Category', widget.dropDownCategories);
     return AlertDialog(
-        title: Padding(child: Text(AppLocalizations.of(context)?.filter ??'Filter'), padding: EdgeInsets.only(bottom: 16)),
+        title: Padding(child: Text(AppLocalizations.of(context)?.filter ?? 'Filter'), padding: EdgeInsets.only(bottom: 16)),
         contentPadding: const EdgeInsets.only(left: 4, right: 4),
         actions: [
           TextButton(
               onPressed: () => setState(() {
-                    widget.language = ANY_LANGUAGE;
-                    widget.category = ANY_CATEGORY;
+                    widget.language = getLocalizedLanguage(ANY_LANGUAGE, context);
+                    widget.category = getLocalizedCategory(ANY_CATEGORY, context);
                     widget.clear();
                   }),
-              child: Text('Clear')),
+              child: Text(AppLocalizations.of(context)?.reset ?? 'Reset')),
           TextButton(
               onPressed: () {
                 widget.submit(languageSpinnerAndTitle.dropdownValue, categorySpinnerAndTitle.dropdownValue);
@@ -374,11 +427,14 @@ class DialogState extends State<ZtvDialog> {
 }
 
 class SpinnerAndTitle extends StatefulWidget {
+  static const TAG = 'SpinnerAndTitle';
   var dropdownValue;
   String title;
   final items;
 
-  SpinnerAndTitle(this.dropdownValue, this.title, this.items);
+  SpinnerAndTitle(this.dropdownValue, this.title, this.items) {
+    log(TAG, 'drop down val=>$dropdownValue');
+  }
 
   @override
   State<StatefulWidget> createState() => SpinnerAndTitleState();
