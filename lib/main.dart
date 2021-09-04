@@ -117,7 +117,7 @@ class _HomePageState extends State<HomePage> {
     _dropDownCategories = [];
     if (_link == null || _link is List) _link = _txtFieldTxt;
     if (_link == null || _link.trim().isEmpty) return;
-    print('play=>$_link');
+    log(TAG,'play=>$_link');
     if (_connectedToInet && (_link.endsWith('=m3u') || _link.contains('download.php?id') || _link.endsWith('.m3u')))
       setState(() {
         uiState = UIState.PLAYLIST;

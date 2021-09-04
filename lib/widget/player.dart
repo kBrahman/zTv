@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:http/http.dart' as http;
 import 'package:video_player/video_player.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/widget/channel.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'music_player.dart';
 
@@ -27,6 +27,7 @@ class _PlayerState extends State<Player> {
   bool fullscreen = false;
   bool delegateToVLC = false;
   bool isPlaying = false;
+  var controlVisible = false;
 
   _PlayerState();
 
@@ -62,6 +63,21 @@ class _PlayerState extends State<Player> {
   @override
   Widget build(BuildContext context) {
     final isAudioFile = (widget.linkOrChannel.endsWith('.mp3') || widget.linkOrChannel.endsWith('.flac'));
+    var miniMaxWidget = Positioned(
+        bottom: 4,
+        right: 4,
+        child: Visibility(
+          child: IconButton(
+              icon: Icon(
+                Icons.fullscreen_exit,
+                color: Colors.white,
+              ),
+              onPressed: () => SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+                  .then((value) => SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values))
+                  .then((value) => setState(() => fullscreen = false))),
+          visible: fullscreen,
+        ));
+
     return Scaffold(
       backgroundColor: fullscreen ? Colors.black : Colors.white,
       appBar: fullscreen
@@ -82,14 +98,17 @@ class _PlayerState extends State<Player> {
             ),
       body: delegateToVLC
           ? Stack(children: [
-              VlcPlayer(
-                controller: _controller,
-                aspectRatio: (_controller.value.size != null && _controller.value.size.aspectRatio != 0.0)
-                    ? _controller.value.size.aspectRatio
-                    : fullscreen
-                        ? .8
-                        : 1.25,
-              ),
+              Align(
+                  child: VlcPlayer(
+                    controller: _controller,
+                    aspectRatio: (_controller.value.size != null && _controller.value.size.aspectRatio != 0.0)
+                        ? _controller.value.size.aspectRatio
+                        : fullscreen
+                            ? .6
+                            : 1.7,
+                  ),
+                  alignment: Alignment.topCenter),
+              miniMaxWidget,
               if (!isPlaying) Center(child: CircularProgressIndicator())
             ])
           : FutureBuilder(
@@ -129,28 +148,28 @@ class _PlayerState extends State<Player> {
                           children: [
                             Align(
                               child: AspectRatio(
-                                aspectRatio: (size == null || size.aspectRatio == 0.0) ? 1.25 : size.aspectRatio,
-                                // Use the VideoPlayer widget to display the video.
-                                child: VideoPlayer(_controller),
-                              ),
+                                  aspectRatio: (size == null || size.aspectRatio == 0.0) ? 1.25 : size.aspectRatio,
+                                  // Use the VideoPlayer widget to display the video.
+                                  child: GestureDetector(
+                                      child: Stack(children: [
+                                        VideoPlayer(_controller),
+                                        if (controlVisible)
+                                          Align(
+                                              child: IconButton(
+                                                  icon: Icon(Icons.pause, color: Colors.white),
+                                                  onPressed: () {
+                                                    log(TAG, 'on pressed');
+                                                    _controller.pause();
+                                                  }))
+                                      ]),
+                                      onTap: () {
+                                        log(TAG, 'tap');
+                                        // setState(() => controlVisible = true);
+                                        // Future.delayed(Duration(seconds: 1), () => setState(() => controlVisible = false));
+                                      })),
                               alignment: Alignment.topCenter,
                             ),
-                            Positioned(
-                                bottom: 4,
-                                right: 4,
-                                child: Visibility(
-                                  child: IconButton(
-                                      icon: Icon(
-                                        Icons.fullscreen_exit,
-                                        color: Colors.white,
-                                      ),
-                                      onPressed: () =>
-                                          SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-                                              .then((value) =>
-                                                  SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values))
-                                              .then((value) => setState(() => fullscreen = false))),
-                                  visible: fullscreen,
-                                )),
+                            miniMaxWidget,
                           ],
                         );
                 } else {
@@ -163,26 +182,22 @@ class _PlayerState extends State<Player> {
 
   getName(String link) => link.substring(link.lastIndexOf('/') + 1);
 
-  bool delegate(data) {
-    if (data is String) return data.startsWith('rtmp://');
-    if (data is Channel) return data.url.startsWith('rtmp://');
-    return false;
-  }
+  bool delegate(data) => data is String
+      ? data.startsWith('rtmp://')
+      : data is Channel
+          ? data.url.startsWith('rtmp://')
+          : false;
 
   void repeatedCheck(VlcPlayerController ctr) {
-    log(TAG, 'repeatedCheck');
     Future.delayed(Duration(seconds: 1), ctr.isPlaying).then((isPlaying) {
-      log(TAG, 'is playing=>$isPlaying');
-      if (isPlaying = true) {
-        ctr.value.size.aspectRatio;
-        setState(() => this.isPlaying = isPlaying!);
-      } else
+      if (isPlaying = true)
+        Future.delayed(Duration(seconds: 2), () => setState(() => this.isPlaying = true));
+      else
         repeatedCheck(ctr);
     });
   }
 
-  void initAndSetDelegate(url) =>
-      Future.microtask(() => initVLC(url)).then((value) => setState(() => delegateToVLC = true));
+  void initAndSetDelegate(url) => Future.microtask(() => initVLC(url)).then((value) => setState(() => delegateToVLC = true));
 }
 
 class WidgetChOff extends StatelessWidget {
