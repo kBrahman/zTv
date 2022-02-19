@@ -49,7 +49,6 @@ class _PlayerState extends State<Player> {
   void initVLC(String url) {
     _controller = VlcPlayerController.network(url, autoPlay: true, options: VlcPlayerOptions())
       ..addOnInitListener(() => repeatedCheck(_controller));
-    log(TAG, 'initVLC');
   }
 
   getUrl(dataSource) => dataSource is Channel ? dataSource.url : dataSource;

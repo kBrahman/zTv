@@ -62,81 +62,94 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
 
   @override
   Widget build(BuildContext context) {
-    var searchActive = showSearchView || (widget._query != null && widget._query?.isNotEmpty == true);
+    var searchActive = showSearchView ||
+        (widget._query != null && widget._query?.isNotEmpty == true);
     return Scaffold(
-      appBar: AppBar(
-        leading: BackButton(),
-        actions: [
-          const SizedBox(width: 48),
-          Expanded(
-              child: searchActive
-                  ? TextField(
-                      style: TextStyle(color: Colors.white),
-                      onChanged: (String txt) {
-                        if (txt.trim().isNotEmpty)
-                          setState(() {
-                            widget._query = txt;
-                          });
-                      },
-                      controller: ctr,
-                      cursorColor: Colors.white,
-                      // controller: TextEditingController(text: widget._query),
-                      decoration: InputDecoration(
-                          contentPadding: EdgeInsets.only(top: 16),
-                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white))),
-                    )
-                  : Container()),
-          searchActive
-              ? IconButton(
-                  icon: Icon(
-                    Icons.close,
-                    color: Colors.white,
-                  ),
-                  onPressed: () => setState(() {
-                    showSearchView = false;
-                    widget._query = null;
-                    ctr = null;
-                  }),
-                )
-              : IconButton(
-                  icon: Icon(
-                    Icons.search,
-                    color: Colors.white,
-                  ),
-                  onPressed: () => setState(() => showSearchView = true)),
-          widget.hasFilter
-              ? IconButton(
-                  icon: Icon(Icons.filter_list, color: Colors.white),
-                  onPressed: () => dialog(
-                          context,
-                          (lan, cat) => setState(() {
-                                widget._filterLanguage = lan;
-                                widget._filterCategory = cat;
-                                log(TAG, "submit lan=>$lan; cat=>$cat");
-                              }), () {
-                        widget._filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
-                        widget._filterCategory = getLocalizedCategory(ANY_CATEGORY, context);
-                      }))
-              : SizedBox.shrink(),
-          if (widget.hasSavePlayList)
-            IconButton(
-                icon: Icon(Icons.save, color: Colors.white),
-                onPressed: () => showDialog(context: context, builder: (_) => SaveDialog(widget._txtFieldTxt)))
-        ],
-      ),
+      appBar: AppBar(leading: BackButton(), actions: [
+        const SizedBox(width: 48),
+        Expanded(
+            child: searchActive
+                ? TextField(
+                    style: TextStyle(color: Colors.white),
+                    onChanged: (String txt) {
+                      if (txt.trim().isNotEmpty)
+                        setState(() {
+                          widget._query = txt;
+                        });
+                    },
+                    controller: ctr,
+                    cursorColor: Colors.white,
+                    // controller: TextEditingController(text: widget._query),
+                    decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.only(top: 16),
+                        focusedBorder: UnderlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.white))),
+                  )
+                : Container()),
+        searchActive
+            ? IconButton(
+                icon: Icon(
+                  Icons.close,
+                  color: Colors.white,
+                ),
+                onPressed: () => setState(() {
+                  showSearchView = false;
+                  widget._query = null;
+                  ctr = null;
+                }),
+              )
+            : IconButton(
+                icon: Icon(
+                  Icons.search,
+                  color: Colors.white,
+                ),
+                onPressed: () => setState(() => showSearchView = true)),
+        widget.hasFilter
+            ? IconButton(
+                icon: Icon(Icons.filter_list, color: Colors.white),
+                onPressed: () => dialog(
+                        context,
+                        (lan, cat) => setState(() {
+                              widget._filterLanguage = lan;
+                              widget._filterCategory = cat;
+                              log(TAG, "submit lan=>$lan; cat=>$cat");
+                            }), () {
+                      widget._filterLanguage =
+                          getLocalizedLanguage(ANY_LANGUAGE, context);
+                      widget._filterCategory =
+                          getLocalizedCategory(ANY_CATEGORY, context);
+                    }))
+            : SizedBox.shrink(),
+        if (widget.hasSavePlayList)
+          IconButton(
+              icon: Icon(Icons.save, color: Colors.white),
+              onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) => SaveDialog(widget._txtFieldTxt)))
+      ]),
       body: FutureBuilder(
         future: (widget._query == null || widget._query?.isEmpty == true) &&
-                (widget._filterLanguage == null || widget._filterLanguage == getLocalizedLanguage(ANY_LANGUAGE, context)) &&
-                (widget._filterCategory == null || widget._filterCategory == getLocalizedCategory(ANY_CATEGORY, context))
+                (widget._filterLanguage == null ||
+                    widget._filterLanguage ==
+                        getLocalizedLanguage(ANY_LANGUAGE, context)) &&
+                (widget._filterCategory == null ||
+                    widget._filterCategory ==
+                        getLocalizedCategory(ANY_CATEGORY, context))
             ? getChannels(widget._linkOrList, widget._xLink)
-            : getFilteredChannels(getChannels(widget._linkOrList, widget._xLink), widget._query ?? ''),
+            : getFilteredChannels(
+                getChannels(widget._linkOrList, widget._xLink),
+                widget._query ?? ''),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return linkBroken
                 ? Center(
-                    child: Text(AppLocalizations.of(context)?.broken_link ?? 'Link is broken!', style: TextStyle(fontSize: 25)))
+                    child: Text(
+                        AppLocalizations.of(context)?.broken_link ??
+                            'Link is broken!',
+                        style: TextStyle(fontSize: 25)))
                 : GridView.count(
-                    crossAxisCount: MediaQuery.of(context).size.width >= 834 ? 4 : 3,
+                    crossAxisCount:
+                        MediaQuery.of(context).size.width >= 834 ? 4 : 3,
                     children: snapshot.data as List<Widget>,
                     controller: _scrollController,
                   );
@@ -182,7 +195,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     });
   }
 
-  Future<List<Channel>> fileToPlaylist(link) => File(link).readAsString().then((value) => parse(value));
+  Future<List<Channel>> fileToPlaylist(link) =>
+      File(link).readAsString().then((value) => parse(value));
 
   Future<List<Channel>> parse(String data) async {
     log(TAG, 'parse');
@@ -205,8 +219,17 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         final channel = Channel(
             title,
             link,
-            (String url, offset, query, language, category) => widget.onTap(url, list, offset, query, language, category, title,
-                widget._dropDownLanguages, widget._dropDownCategories, widget.hasFilter));
+            (String url, offset, query, language, category) => widget.onTap(
+                url,
+                list,
+                offset,
+                query,
+                language,
+                category,
+                title,
+                widget._dropDownLanguages,
+                widget._dropDownCategories,
+                widget.hasFilter));
         channel.sc = _scrollController;
         if (category != null) channel.category = category;
         if (title.contains(RegExp('FRANCE|\\|FR\\|'))) {
@@ -246,48 +269,68 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         var data = split.first;
         setChannelProperties(data.split(' '), channel);
         for (final l in channel.languages) {
-          if (!widget._dropDownLanguages.contains(l)) widget._dropDownLanguages.add(l);
+          if (!widget._dropDownLanguages.contains(l))
+            widget._dropDownLanguages.add(l);
         }
-        if (channel.category != null && !widget._dropDownCategories.contains(channel.category))
+        if (channel.category != null &&
+            !widget._dropDownCategories.contains(channel.category))
           widget._dropDownCategories.add(channel.category);
         list.add(channel);
       }
     }
     log(TAG, 'cats before sorting=>${widget._dropDownCategories}');
     widget._dropDownCategories.sort();
-    widget._dropDownCategories.insert(0, getLocalizedCategory(ANY_CATEGORY, context));
+    widget._dropDownCategories
+        .insert(0, getLocalizedCategory(ANY_CATEGORY, context));
     widget._dropDownLanguages.sort();
-    widget._dropDownLanguages.insert(0, getLocalizedLanguage(ANY_LANGUAGE, context));
-    widget._filterCategory = getLocalizedCategory(widget._filterCategory, context);
-    widget._filterLanguage = getLocalizedLanguage(widget._filterLanguage, context);
-    setState(() => widget.hasFilter = (widget._dropDownCategories.length > 1 || widget._dropDownLanguages.length > 1));
+    widget._dropDownLanguages
+        .insert(0, getLocalizedLanguage(ANY_LANGUAGE, context));
+    widget._filterCategory =
+        getLocalizedCategory(widget._filterCategory, context);
+    widget._filterLanguage =
+        getLocalizedLanguage(widget._filterLanguage, context);
+    setState(() => widget.hasFilter = (widget._dropDownCategories.length > 1 ||
+        widget._dropDownLanguages.length > 1));
     widget._linkOrList = list;
     log(TAG, 'parse finished');
     return Future.value(list);
   }
 
-  Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) => f.then((list) => list.where((element) {
-        log(TAG, 'get filtered channels');
-        element.query = widget._query ?? '';
-        return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
-            (widget._filterLanguage != getLocalizedLanguage(ANY_LANGUAGE, context)
-                ? element.languages.contains(widget._filterLanguage)
-                : true) &&
-            (widget._filterCategory != getLocalizedCategory(ANY_CATEGORY, context)
-                ? element.category == widget._filterCategory
-                : true);
-      }).toList());
+  Future<List<Channel>> getFilteredChannels(
+          Future<List<Channel>> f, String q) =>
+      f.then((list) => list.where((element) {
+            log(TAG, 'get filtered channels');
+            element.query = widget._query ?? '';
+            return ((q.isEmpty)
+                    ? true
+                    : element.title.toLowerCase().contains(q.toLowerCase())) &&
+                (widget._filterLanguage !=
+                        getLocalizedLanguage(ANY_LANGUAGE, context)
+                    ? element.languages.contains(widget._filterLanguage)
+                    : true) &&
+                (widget._filterCategory !=
+                        getLocalizedCategory(ANY_CATEGORY, context)
+                    ? element.category == widget._filterCategory
+                    : true);
+          }).toList());
 
   void dialog(ctx, submit, clear) => showDialog(
       context: ctx,
-      builder: (_) => ZtvDialog(submit, clear, widget._filterLanguage, widget._filterCategory, widget._dropDownLanguages,
+      builder: (_) => ZtvDialog(
+          submit,
+          clear,
+          widget._filterLanguage,
+          widget._filterCategory,
+          widget._dropDownLanguages,
           widget._dropDownCategories));
 
   setChannelProperties(List<String> data, Channel channel) {
     for (final item in data) {
       String str;
-      if (item.startsWith('tvg-language') && (str = item.split('=').last.replaceAll('"', '')).isNotEmpty) {
-        channel.languages.addAll(str.split(';').map((e) => getLocalizedLanguage(e, context)));
+      if (item.startsWith('tvg-language') &&
+          (str = item.split('=').last.replaceAll('"', '')).isNotEmpty) {
+        channel.languages.addAll(
+            str.split(';').map((e) => getLocalizedLanguage(e, context)));
         if (channel.languages.contains(CASTILIAN)) {
           channel.languages.remove(CASTILIAN);
           channel.languages.add(getLocalizedLanguage(SPANISH, context));
@@ -325,9 +368,11 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
           channel.languages.remove('Yue');
           channel.languages.add(getLocalizedLanguage(CHINESE, context));
         }
-      } else if (item.startsWith('tvg-logo') && (str = item.split('=').last.replaceAll('"', '')).isNotEmpty) {
+      } else if (item.startsWith('tvg-logo') &&
+          (str = item.split('=').last.replaceAll('"', '')).isNotEmpty) {
         channel.logo = str;
-      } else if (item.startsWith('group-title') && (str = item.split('=').last.replaceAll('"', '')).isNotEmpty) {
+      } else if (item.startsWith('group-title') &&
+          (str = item.split('=').last.replaceAll('"', '')).isNotEmpty) {
         channel.category = getLocalizedCategory(str, context);
       }
     }
@@ -344,9 +389,11 @@ class SaveDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    var name = 'Playlist_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}';
+    var name =
+        'Playlist_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}';
     return AlertDialog(
-      title: Text(AppLocalizations.of(context)?.save_playlist ?? 'Save playlist'),
+      title:
+          Text(AppLocalizations.of(context)?.save_playlist ?? 'Save playlist'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -370,9 +417,11 @@ class SaveDialog extends StatelessWidget {
 
   Future<void> savePlaylist(Playlist playlist) async {
     openDatabase(p.join(await getDatabasesPath(), DB_NAME), onCreate: (db, v) {
-      return db.execute('CREATE TABLE playlist(name TEXT, link TEXT PRIMARY KEY)');
+      return db
+          .execute('CREATE TABLE playlist(name TEXT, link TEXT PRIMARY KEY)');
     }, version: 1)
-        .then((db) => db.insert('playlist', playlist.toMap(), conflictAlgorithm: ConflictAlgorithm.replace));
+        .then((db) => db.insert('playlist', playlist.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace));
   }
 }
 
@@ -384,7 +433,8 @@ class ZtvDialog extends StatefulWidget {
   final List<String> dropDownLanguages;
   final dropDownCategories;
 
-  ZtvDialog(this.submit, this.clear, this.language, this.category, this.dropDownLanguages, this.dropDownCategories);
+  ZtvDialog(this.submit, this.clear, this.language, this.category,
+      this.dropDownLanguages, this.dropDownCategories);
 
   @override
   State<StatefulWidget> createState() => DialogState();
@@ -395,32 +445,45 @@ class DialogState extends State<ZtvDialog> {
 
   @override
   Widget build(BuildContext context) {
-    var languageSpinnerAndTitle =
-        SpinnerAndTitle(widget.language, AppLocalizations.of(context)?.language ?? 'Language', widget.dropDownLanguages);
-    var categorySpinnerAndTitle =
-        SpinnerAndTitle(widget.category, AppLocalizations.of(context)?.category ?? 'Category', widget.dropDownCategories);
+    var languageSpinnerAndTitle = SpinnerAndTitle(
+        widget.language,
+        AppLocalizations.of(context)?.language ?? 'Language',
+        widget.dropDownLanguages);
+    var categorySpinnerAndTitle = SpinnerAndTitle(
+        widget.category,
+        AppLocalizations.of(context)?.category ?? 'Category',
+        widget.dropDownCategories);
     return AlertDialog(
-        title: Padding(child: Text(AppLocalizations.of(context)?.filter ?? 'Filter'), padding: EdgeInsets.only(bottom: 16)),
+        title: Padding(
+            child: Text(AppLocalizations.of(context)?.filter ?? 'Filter'),
+            padding: EdgeInsets.only(bottom: 16)),
         contentPadding: const EdgeInsets.only(left: 4, right: 4),
         actions: [
           TextButton(
               onPressed: () => setState(() {
-                    widget.language = getLocalizedLanguage(ANY_LANGUAGE, context);
-                    widget.category = getLocalizedCategory(ANY_CATEGORY, context);
+                    widget.language =
+                        getLocalizedLanguage(ANY_LANGUAGE, context);
+                    widget.category =
+                        getLocalizedCategory(ANY_CATEGORY, context);
                     widget.clear();
                   }),
               child: Text(AppLocalizations.of(context)?.reset ?? 'Reset')),
           TextButton(
               onPressed: () {
-                widget.submit(languageSpinnerAndTitle.dropdownValue, categorySpinnerAndTitle.dropdownValue);
+                widget.submit(languageSpinnerAndTitle.dropdownValue,
+                    categorySpinnerAndTitle.dropdownValue);
                 Navigator.of(context).pop();
               },
               child: Text('OK'))
         ],
         content: Row(
           children: [
-            Padding(padding: EdgeInsets.only(right: 2), child: languageSpinnerAndTitle),
-            Padding(padding: EdgeInsets.only(left: 2), child: categorySpinnerAndTitle)
+            Padding(
+                padding: EdgeInsets.only(right: 2),
+                child: languageSpinnerAndTitle),
+            Padding(
+                padding: EdgeInsets.only(left: 2),
+                child: categorySpinnerAndTitle)
           ],
         ));
   }

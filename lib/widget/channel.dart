@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ztv/util/util.dart';
 
+
 class Channel extends StatelessWidget {
   static const TAG = 'Channel';
   final String url;
@@ -34,7 +35,10 @@ class Channel extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(child: logo == null ? img : Image.network(logo!, errorBuilder: (c, e, t) => img)),
+                Flexible(
+                    child: logo == null
+                        ? img
+                        : Image.network(logo!, errorBuilder: (c, e, t) => img)),
                 Text(title, style: TextStyle(fontSize: 15)),
               ],
             ),
