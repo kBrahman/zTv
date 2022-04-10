@@ -117,7 +117,7 @@ class _HomePageState extends State<HomePage> {
     _dropDownCategories = [];
     if (_link == null || _link is List) _link = _txtFieldTxt;
     if (_link == null || _link.trim().isEmpty) return;
-    log(TAG,'play=>$_link');
+    log(TAG, 'play=>$_link');
     if (_connectedToInet && (_link.endsWith('=m3u') || _link.contains('download.php?id') || _link.endsWith('.m3u')))
       setState(() {
         uiState = UIState.PLAYLIST;
@@ -125,6 +125,7 @@ class _HomePageState extends State<HomePage> {
       });
     else if (_connectedToInet || isLocalFile(_link))
       setState(() {
+        _title = '';
         uiState = UIState.PLAYER;
         stateStack.add(UIState.PLAYER);
       });
@@ -141,8 +142,8 @@ class _HomePageState extends State<HomePage> {
     return WillPopScope(onWillPop: willPop, child: getChild());
   }
 
-  void onTap(urlOrChannel, List<Widget> data, double offset, String query, filterLanguage, filterCategory, title,
-      filterLanguages, categories, hasFilter) {
+  void onTap(urlOrChannel, List<Widget> data, double offset, String query, filterLanguage, filterCategory, title, filterLanguages,
+      categories, hasFilter) {
     log(TAG, 'on tap category=>$filterCategory');
     log(TAG, 'on tap filterLanguage=>$filterLanguage');
     this._filterLanguage = filterLanguage;
@@ -185,7 +186,7 @@ class _HomePageState extends State<HomePage> {
 
   void _browse() async {
     FilePickerResult? result =
-        await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['flac', 'mp4', 'm3u', 'mp3', 'm3u']);
+        await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['flac', 'mp4', 'm3u', 'mp3', 'webm']);
     if (result != null) setState(() => _txtFieldTxt = result.files.single.path);
   }
 
@@ -242,8 +243,8 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.only(left: 16.0, right: 16.0),
                       child: TextField(
                         onChanged: (String txt) => _link = txt,
-                        decoration: InputDecoration(
-                            hintText: AppLocalizations.of(context)?.link_val ?? 'Video URL or IPTV playlist URL'),
+                        decoration:
+                            InputDecoration(hintText: AppLocalizations.of(context)?.link_val ?? 'Video URL or IPTV playlist URL'),
                         controller: TextEditingController(text: _txtFieldTxt),
                       )),
                 ],

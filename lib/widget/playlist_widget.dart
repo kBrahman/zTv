@@ -299,7 +299,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   Future<List<Channel>> getFilteredChannels(
           Future<List<Channel>> f, String q) =>
       f.then((list) => list.where((element) {
-            log(TAG, 'get filtered channels');
             element.query = widget._query ?? '';
             return ((q.isEmpty)
                     ? true
