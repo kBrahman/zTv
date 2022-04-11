@@ -1,3 +1,3 @@
 import 'dart:ui';
 
-const LOCALES = [const Locale('en', ''), const Locale('ms', ''), const Locale('pt', '')];
+const LOCALES = [Locale('en', ''), Locale('ms', ''), Locale('pt', ''), Locale('ar', '')];

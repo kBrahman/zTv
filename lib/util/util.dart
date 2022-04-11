@@ -1,5 +1,9 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+const UNDEFINED = 'Undefined';
 
 const TURKMEN = 'Turkmen';
 const ANY_LANGUAGE = 'Any language';
@@ -82,6 +86,17 @@ const SWEDISH = 'Swedish';
 const TAGALOG = 'Tagalog';
 const TELUGU = 'Telugu';
 const THAI = 'Thai';
+const MALDIVIAN = 'Maldivian';
+const KYRGYZ = 'Kyrgyz';
+const BELARUSIAN = 'Belarusian';
+const BHOJPURI = 'Bhojpuri';
+const CHEWA = 'Chewa';
+const GREENLANDIC = 'Greenlandic';
+const GUJARATI = 'Gujarati';
+const INUKTITUT = 'Inuktitut';
+const LINGALA = 'Lingala';
+const MANDINKA = 'Mandinka';
+const MARATHI = 'Marathi';
 //categories
 const ANY_CATEGORY = 'Any category';
 const WEATHER = 'Weather';
@@ -127,6 +142,8 @@ String getLocalizedLanguage(String? s, BuildContext context) {
     case null:
     case ANY_LANGUAGE:
       return of?.any_lan ?? ANY_LANGUAGE;
+    case MALDIVIAN:
+      return of?.dv ?? s!;
     case AKAN:
       return of?.ak ?? s!;
     case ALBANIAN:
@@ -144,7 +161,7 @@ String getLocalizedLanguage(String? s, BuildContext context) {
     case BASHKIR:
       return of?.ba ?? s!;
     case BENGALI:
-      return of?.be ?? s!;
+      return of?.bn ?? s!;
     case BOSNIAN:
       return of?.bo ?? s!;
     case BULGARIAN:
@@ -283,6 +300,26 @@ String getLocalizedLanguage(String? s, BuildContext context) {
       return of?.uz ?? s!;
     case VIETNAMESE:
       return of?.vi ?? s!;
+    case KYRGYZ:
+      return of?.ky ?? s!;
+    case BELARUSIAN:
+      return of?.be ?? s!;
+    case BHOJPURI:
+      return of?.bho ?? s!;
+    case CHEWA:
+      return of?.ny ?? s!;
+    case GREENLANDIC:
+      return of?.kl ?? s!;
+    case GUJARATI:
+      return of?.gu ?? s!;
+    case INUKTITUT:
+      return of?.ui ?? s!;
+    case LINGALA:
+      return of?.ln ?? s!;
+    case MANDINKA:
+      return of?.mnk ?? s!;
+    case MARATHI:
+      return of?.mr ?? s!;
     default:
       return s!;
   }
@@ -350,6 +387,8 @@ String getLocalizedCategory(String? s, BuildContext context) {
       return of?.travel ?? s!;
     case WEATHER:
       return of?.weather ?? s!;
+    case UNDEFINED:
+      return of?.nan ?? s!;
     default:
       return s!;
   }

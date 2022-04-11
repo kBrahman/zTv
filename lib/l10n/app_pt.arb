@@ -51,8 +51,9 @@
   "sports": "Esportes",
   "travel": "Viajar por",
   "weather": "Clima",
+  "nan": "Indefinida",
   "any_lan": "Qualquer língua",
-  "sq": "Albanesa",
+  "sq": "Albanês",
   "am": "Amárico",
   "ar": "Árabe",
   "aii": "Assírio",
@@ -115,5 +116,15 @@
   "ua": "Ucraniano",
   "uz": "Uzbeque",
   "vi": "Vietnamita",
-  "id": "Indonésio"
+  "id": "Indonésio",
+  "be": "Bielorrusso",
+  "bho": "Bhojpuri",
+  "ny": "Chewa",
+  "dv": "Maldivas",
+  "kl": "Groenlandês",
+  "gu": "Gujarati",
+  "ui": "Inuktitut",
+  "ky": "Quirguistão",
+  "ln": "Lingala",
+  "mnk": "Mandinga"
 }
