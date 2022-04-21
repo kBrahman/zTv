@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names
+// ignore_for_file: constant_identifier_names, avoid_print
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -97,6 +97,7 @@ const INUKTITUT = 'Inuktitut';
 const LINGALA = 'Lingala';
 const MANDINKA = 'Mandinka';
 const MARATHI = 'Marathi';
+const ODIA = 'Odia';
 //categories
 const ANY_CATEGORY = 'Any category';
 const WEATHER = 'Weather';
@@ -142,6 +143,8 @@ String getLocalizedLanguage(String? s, BuildContext context) {
     case null:
     case ANY_LANGUAGE:
       return of?.any_lan ?? ANY_LANGUAGE;
+    case ODIA:
+      return of?.or ?? s!;
     case MALDIVIAN:
       return of?.dv ?? s!;
     case AKAN:

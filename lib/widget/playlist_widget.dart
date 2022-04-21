@@ -311,8 +311,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
       } else if (channel.languages.contains('CA')) {
         channel.languages.remove('CA');
         channel.languages.add(getLocalizedLanguage(ENGLISH, context));
-      } else if (channel.languages.contains('Mandarin')) {
-        channel.languages.remove('Mandarin');
+      } else if (channel.languages.any((l) => l.startsWith('Mandarin'))) {
+        channel.languages.removeWhere((l) => l.startsWith('Mandarin'));
         channel.languages.add(getLocalizedLanguage(CHINESE, context));
       } else if (channel.languages.contains('Min')) {
         channel.languages.remove('Min');
@@ -329,26 +329,32 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
       } else if (channel.languages.contains('Western')) {
         channel.languages.remove('Western');
         channel.languages.add(getLocalizedLanguage(DUTCH, context));
-      } else if (channel.languages.contains('Yue')) {
-        channel.languages.remove('Yue');
+      } else if (channel.languages.any((l) => l.startsWith('Yue'))) {
+        channel.languages.removeWhere((l) => l.startsWith('Yue'));
         channel.languages.add(getLocalizedLanguage(CHINESE, context));
       } else if (channel.languages.contains('Central')) {
         channel.languages.remove('Central');
       } else if (channel.languages.contains('Dhivehi')) {
         channel.languages.remove('Dhivehi');
-        channel.languages.add(MALDIVIAN);
+        channel.languages.add(getLocalizedLanguage(MALDIVIAN, context));
       } else if (channel.languages.contains('Kirghiz')) {
         channel.languages.remove('Kirghiz');
-        channel.languages.add(KYRGYZ);
+        channel.languages.add(getLocalizedLanguage(KYRGYZ, context));
       } else if (channel.languages.contains('Letzeburgesch')) {
         channel.languages.remove('Letzeburgesch');
-        channel.languages.add(LUXEMBOURGISH);
+        channel.languages.add(getLocalizedLanguage(LUXEMBOURGISH, context));
       } else if (channel.languages.contains('Northern Kurdish') || channel.languages.contains('Central Kurdish')) {
         channel.languages.removeWhere((e) => e == 'Central Kurdish' || e == 'Northern Kurdish');
-        channel.languages.add(KURDISH);
-      }else if (channel.languages.contains('Assyrian Neo-Aramaic')) {
+        channel.languages.add(getLocalizedLanguage(KURDISH, context));
+      } else if (channel.languages.contains('Assyrian Neo-Aramaic')) {
         channel.languages.remove('Assyrian Neo-Aramaic');
-        channel.languages.add(ASSYRIAN);
+        channel.languages.add(getLocalizedLanguage(ASSYRIAN, context));
+      } else if (channel.languages.contains('Norwegian Bokmål')) {
+        channel.languages.remove('Norwegian Bokmål');
+        channel.languages.add(getLocalizedLanguage(NORWEGIAN, context));
+      } else if (channel.languages.any((l) => l.startsWith('Oriya'))) {
+        channel.languages.removeWhere((l) => l.startsWith('Oriya'));
+        channel.languages.add(getLocalizedLanguage(ODIA, context));
       }
     } else if (item.startsWith('tvg-logo') && (str = item.split('=').last).isNotEmpty) {
       channel.logo = str;

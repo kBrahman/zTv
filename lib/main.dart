@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures, constant_identifier_names
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:file_picker/file_picker.dart';
@@ -43,7 +45,7 @@ class Ztv extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
         debugShowCheckedModeBanner: false,
-        localizationsDelegates: [
+        localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
@@ -111,6 +113,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _play() {
+    log(TAG, _link);
     if (_link is String && _link == widget.playlist) return;
     _droDownLanguages = [];
     _dropDownCategories = [];
@@ -199,7 +202,7 @@ class _HomePageState extends State<HomePage> {
             title: const Text('zTv'),
             actions: [
               IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.featured_play_list,
                     color: Colors.white,
                   ),
@@ -207,7 +210,7 @@ class _HomePageState extends State<HomePage> {
                         uiState = UIState.MY_PLAYLISTS;
                         stateStack.add(UIState.MY_PLAYLISTS);
                       })),
-              IconButton(color: Colors.white, icon: Icon(Icons.folder), onPressed: _browse)
+              IconButton(color: Colors.white, icon: const Icon(Icons.folder), onPressed: _browse)
             ],
           ),
           body: Column(
@@ -321,6 +324,7 @@ class _HomePageState extends State<HomePage> {
 
   myIptv() {
     _link = widget.playlist;
+    log(TAG, _link);
     _xLink = widget.xList;
     setState(() => uiState = UIState.MY_IPTV);
     stateStack.add(UIState.MY_IPTV);
