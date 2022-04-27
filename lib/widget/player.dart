@@ -1,20 +1,25 @@
+// ignore_for_file: constant_identifier_names, curly_braces_in_flow_control_structures
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:http/http.dart' as http;
+import 'package:sqflite/sqflite.dart';
 import 'package:video_player/video_player.dart';
-import 'package:ztv/util/util.dart';
-import 'package:ztv/widget/channel.dart';
 
+import '../util/util.dart';
+import 'channel.dart';
 import 'music_player.dart';
 
 class Player extends StatefulWidget {
-  final linkOrChannel;
-  final title;
+  final String _link;
+  final String _title;
+  final Database db;
+  final String? _logo;
 
-  Player(this.linkOrChannel, this.title);
+  const Player(this._link, this._title, this._logo, this.db, {Key? key}) : super(key: key);
 
   @override
   _PlayerState createState() => _PlayerState();
@@ -22,7 +27,7 @@ class Player extends StatefulWidget {
 
 class _PlayerState extends State<Player> {
   static const TAG = '_PlayerState';
-  var _controller;
+  late dynamic _controller;
   Future<void>? _initializeVideoPlayerFuture;
   bool fullscreen = false;
   bool delegateToVLC = false;
@@ -33,14 +38,12 @@ class _PlayerState extends State<Player> {
 
   @override
   void initState() {
-    var dataSource = widget.linkOrChannel;
+    var dataSource = widget._link;
     delegateToVLC = delegate(dataSource);
-    String url = getUrl(dataSource);
-    log(TAG, url.substring(1));
     if (delegateToVLC)
-      initVLC(url);
+      initVLC(dataSource);
     else {
-      _controller = VideoPlayerController.network(url);
+      _controller = VideoPlayerController.network(dataSource);
       _initializeVideoPlayerFuture = _controller.initialize();
     }
     super.initState();
@@ -61,13 +64,13 @@ class _PlayerState extends State<Player> {
 
   @override
   Widget build(BuildContext context) {
-    final isAudioFile = (widget.linkOrChannel.endsWith('.mp3') || widget.linkOrChannel.endsWith('.flac'));
+    final isAudioFile = (widget._link.endsWith('.mp3') || widget._link.endsWith('.flac'));
     var miniMaxWidget = Positioned(
         bottom: 4,
         right: 4,
         child: Visibility(
           child: IconButton(
-              icon: Icon(
+              icon: const Icon(
                 Icons.fullscreen_exit,
                 color: Colors.white,
               ),
@@ -82,11 +85,11 @@ class _PlayerState extends State<Player> {
       appBar: fullscreen
           ? null
           : AppBar(
-              leading: BackButton(),
-              title: Text(isAudioFile ? getName(widget.linkOrChannel) : widget.title),
+              leading: const BackButton(),
+              title: Text(isAudioFile ? getName(widget._link) : widget._title),
               actions: [
                 isAudioFile
-                    ? SizedBox.shrink()
+                    ? const SizedBox.shrink()
                     : IconButton(
                         icon: Icon(Icons.fullscreen),
                         onPressed: () => SystemChrome.setEnabledSystemUIOverlays([])
@@ -128,18 +131,20 @@ class _PlayerState extends State<Player> {
                           _initializeVideoPlayerFuture = _controller.initialize();
                         });
                       else
-                        return WidgetChOff();
+                        return const WidgetChOff();
                     });
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   } else if (hasError &&
                       err is PlatformException &&
                       err.message?.contains('MediaCodecVideoRenderer error') == true) {
                     log(TAG, 'trying to play with VLC');
                     delegateToVLC = true;
-                    initAndSetDelegate(getUrl(widget.linkOrChannel));
-                    return Center(child: CircularProgressIndicator());
-                  } else if (hasError) return WidgetChOff();
+                    initAndSetDelegate(widget._link);
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (hasError) return const WidgetChOff();
                   _controller.play();
+                  widget.db.insert('history', {'title': widget._title, 'link': widget._link, 'logo': widget._logo},
+                      conflictAlgorithm: ConflictAlgorithm.abort);
                   final size = _controller.value.size;
                   return isAudioFile
                       ? MusicPlayer(_controller)
@@ -155,7 +160,7 @@ class _PlayerState extends State<Player> {
                                         if (controlVisible)
                                           Align(
                                               child: IconButton(
-                                                  icon: Icon(Icons.pause, color: Colors.white),
+                                                  icon: const Icon(Icons.pause, color: Colors.white),
                                                   onPressed: () {
                                                     log(TAG, 'on pressed');
                                                     _controller.pause();
@@ -188,9 +193,9 @@ class _PlayerState extends State<Player> {
           : false;
 
   void repeatedCheck(VlcPlayerController ctr) {
-    Future.delayed(Duration(seconds: 1), ctr.isPlaying).then((isPlaying) {
+    Future.delayed(const Duration(seconds: 1), ctr.isPlaying).then((isPlaying) {
       if (isPlaying = true)
-        Future.delayed(Duration(seconds: 2), () => setState(() => this.isPlaying = true));
+        Future.delayed(const Duration(seconds: 2), () => setState(() => this.isPlaying = true));
       else
         repeatedCheck(ctr);
     });

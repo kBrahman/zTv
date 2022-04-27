@@ -1,15 +1,15 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:ztv/model/playlist.dart';
 import 'package:ztv/util/util.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MyPlaylists extends StatefulWidget {
-  final onPlaylistTap;
+  final Function(String link) onPlaylistTap;
+  final Database db;
 
-  MyPlaylists(this.onPlaylistTap);
+  const MyPlaylists(this.onPlaylistTap, this.db, {Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => MyPlaylistsState();
@@ -25,29 +25,21 @@ class MyPlaylistsState extends State<MyPlaylists> {
   }
 
   Future<List<Playlist>> myPlaylists() async {
-    final Database db = await openDatabase(
-      join(await getDatabasesPath(), DB_NAME),
-      onCreate: (db, v) {
-        return db.execute('CREATE TABLE playlist(name TEXT, link TEXT PRIMARY KEY)');
-      },
-      version: 1,
-    );
-    final List<Map<String, dynamic>> maps = await db.query(TABLE_PLAYLIST);
+    final List<Map<String, dynamic>> maps = await widget.db.query(TABLE_PLAYLIST);
     return List.generate(maps.length, (i) => Playlist(maps[i]['name'], maps[i]['link']));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar:
-            AppBar(leading: BackButton(), title: Text(AppLocalizations.of(context)?.my_playlists ?? 'My playlists')),
+        appBar: AppBar(leading: const BackButton(), title: Text(AppLocalizations.of(context)?.my_playlists ?? 'My playlists')),
         body: FutureBuilder(
             future: future,
             builder: (ctx, snap) {
               if (snap.connectionState == ConnectionState.done) {
                 var list = snap.data as List<Playlist>;
                 return Padding(
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     child: Column(
                         children: List.generate(
                             (list).length,
@@ -57,11 +49,11 @@ class MyPlaylistsState extends State<MyPlaylists> {
                                 child: Row(
                                   children: [
                                     Padding(
-                                        padding: EdgeInsets.all(4),
-                                        child: Text(list[i].name, style: TextStyle(fontSize: 20))),
-                                    Spacer(),
+                                        padding: const EdgeInsets.all(4),
+                                        child: Text(list[i].name, style: const TextStyle(fontSize: 20))),
+                                    const Spacer(),
                                     IconButton(
-                                        icon: Icon(Icons.delete),
+                                        icon: const Icon(Icons.delete),
                                         onPressed: () {
                                           setState(() {
                                             future = delete(list[i].link).then((_) => myPlaylists());
@@ -69,8 +61,9 @@ class MyPlaylistsState extends State<MyPlaylists> {
                                         })
                                   ],
                                 )))));
-              } else
-                return Center(child: CircularProgressIndicator());
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
             }));
   }
 

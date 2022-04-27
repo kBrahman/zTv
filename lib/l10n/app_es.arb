@@ -143,5 +143,7 @@
   "ui": "Inuktitut",
   "ky": "Kirguís",
   "ln": "Lingala",
-  "mnk": "Mandinga"
+  "mnk": "Mandinga",
+  "history": "Historia",
+  "playlist_link_broken": "El enlace de la lista de reproducción está roto. No puedo guardarlo."
 }

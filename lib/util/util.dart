@@ -132,7 +132,14 @@ const TRAVEL = 'Travel';
 
 const DB_NAME = 'ztv.db';
 const TABLE_PLAYLIST = 'playlist';
-
+const CREATE_TABLE_HISTORY =
+    "CREATE TABLE history($COLUMN_ID INTEGER PRIMARY KEY, $COLUMN_TITLE TEXT, $COLUMN_LINK TEXT, $COLUMN_LOGO TEXT, $COLUMN_TIME DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M', 'now', 'localtime')))";
+const CREATE_TABLE_PLAYLIST = 'CREATE TABLE playlist($COLUMN_TITLE TEXT, $COLUMN_LINK TEXT PRIMARY KEY)';
+const COLUMN_TITLE = 'title';
+const COLUMN_LINK = 'link';
+const COLUMN_LOGO = 'logo';
+const COLUMN_TIME = 'time';
+const COLUMN_ID = 'id';
 const CHANNEL_COUNT = "8000";
 
 log(String tag, String? msg) => print('$tag:$msg');

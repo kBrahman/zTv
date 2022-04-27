@@ -10,10 +10,13 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:ztv/model/purchasable_product.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/util/ztv_purchase.dart';
+import 'package:ztv/widget/history_widget.dart';
 import 'package:ztv/widget/my_playlists.dart';
 import 'package:ztv/widget/player.dart';
 import 'package:ztv/widget/playlist_widget.dart';
@@ -21,7 +24,7 @@ import 'package:ztv/widget/playlist_widget.dart';
 import 'l10n/locale.dart';
 
 var colorCodes = {
-  50: Color.fromRGBO(247, 0, 15, .1),
+  50: const Color.fromRGBO(247, 0, 15, .1),
   for (var i = 100; i < 1000; i += 100) i: Color.fromRGBO(247, 0, 15, (i + 100) / 1000)
 };
 
@@ -30,7 +33,7 @@ void main() async {
   InAppPurchaseAndroidPlatformAddition.enablePendingPurchases();
   String data = await rootBundle.loadString('assets/local.properties');
   var iterable = data.split('\n').where((element) => !element.startsWith('#') && element.isNotEmpty);
-  var props = Map.fromIterable(iterable, key: (v) => v.split('=')[0], value: (v) => v.split('=')[1]);
+  var props = {for (var v in iterable) v.split('=')[0]: v.split('=')[1]};
   runApp(Ztv(props['playlist'], props['x_list']));
 }
 
@@ -40,7 +43,7 @@ class Ztv extends StatelessWidget {
   final playlist;
   final xList;
 
-  const Ztv(this.playlist, this.xList);
+  const Ztv(this.playlist, this.xList, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -77,15 +80,15 @@ class _HomePageState extends State<HomePage> {
   static const YEAR_IN_SEC = 365 * 24 * 3600;
   static const HAS_IPTV = 'has_iptv';
 
-  var _link;
+  dynamic _link;
   var _xLink;
   var _dataHolder;
   var _offset = 0.0;
   var _txtFieldTxt;
   var _query;
   var _connectedToInet = true;
-  var _filterLanguage;
-  var _filterCategory;
+  var _filterLanguage = ANY_LANGUAGE;
+  var _filterCategory = ANY_CATEGORY;
   var uiState = UIState.MAIN;
   var _title = 'Player';
   final stateStack = [UIState.MAIN];
@@ -95,11 +98,15 @@ class _HomePageState extends State<HomePage> {
   var _hasIPTV;
   var purchase = ZtvPurchases();
   String? id;
+  late Database db;
+  String? _logo;
+  List<Widget>? myIPTVPlaylist;
 
   @override
   void initState() {
     checkConnection();
     hasIPTV();
+    initDB();
     super.initState();
   }
 
@@ -133,7 +140,7 @@ class _HomePageState extends State<HomePage> {
       });
     else {
       final snackBar =
-          SnackBar(content: Text(AppLocalizations.of(context)?.no_inet ?? 'No internet'), duration: Duration(seconds: 1));
+          SnackBar(content: Text(AppLocalizations.of(context)?.no_inet ?? 'No internet'), duration: const Duration(seconds: 1));
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
     _txtFieldTxt = _link;
@@ -144,24 +151,25 @@ class _HomePageState extends State<HomePage> {
     return WillPopScope(onWillPop: willPop, child: getChild());
   }
 
-  void onTap(urlOrChannel, List<Widget> data, double offset, String query, filterLanguage, filterCategory, title, filterLanguages,
-      categories, hasFilter) {
-    log(TAG, 'on tap category=>$filterCategory');
-    log(TAG, 'on tap filterLanguage=>$filterLanguage');
-    this._filterLanguage = filterLanguage;
-    this._filterCategory = filterCategory;
-    this._title = title;
-    this._droDownLanguages = filterLanguages;
-    this._dropDownCategories = categories;
-    this._hasFilter = hasFilter;
+  void _onTap(link, List<Widget> data, double offset, String query, filterLanguage, filterCategory, title, logo, filterLanguages,
+      categories, hasFilter, fromMYIPTV) {
+    _filterLanguage = filterLanguage;
+    _filterCategory = filterCategory;
+    _title = title;
+    _droDownLanguages = filterLanguages;
+    _dropDownCategories = categories;
+    _hasFilter = hasFilter;
+    _logo = logo;
     _dataHolder = data;
     _offset = offset;
     _query = query;
+    if (fromMYIPTV) myIPTVPlaylist = data;
     setState(() {
-      _link = urlOrChannel;
+      _link = link;
       uiState = UIState.PLAYER;
       stateStack.add(UIState.PLAYER);
     });
+    log(TAG, 'on tap, data=>$data');
   }
 
   void onPlaylistTap(link) => setState(() {
@@ -179,8 +187,8 @@ class _HomePageState extends State<HomePage> {
       if (uiState != UIState.PLAYLIST && uiState != UIState.MY_IPTV) {
         _query = null;
         _offset = 0.0;
-        _filterLanguage = null;
-        _filterCategory = null;
+        _filterLanguage = ANY_LANGUAGE;
+        _filterCategory = ANY_CATEGORY;
       }
     });
     return Future.value(false);
@@ -201,6 +209,7 @@ class _HomePageState extends State<HomePage> {
           appBar: AppBar(
             title: const Text('zTv'),
             actions: [
+              IconButton(color: Colors.white, icon: const Icon(Icons.history), onPressed: _history),
               IconButton(
                   icon: const Icon(
                     Icons.featured_play_list,
@@ -217,7 +226,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               if (_hasIPTV == false && purchase.product != null)
                 Padding(
-                    padding: EdgeInsets.only(left: 4, right: 4),
+                    padding: const EdgeInsets.only(left: 4, right: 4),
                     child: Text(
                         purchase.product!.status == ProductStatus.purchasable
                             ? AppLocalizations.of(context)?.get_iptv_txt(purchase.product!.price, CHANNEL_COUNT) ??
@@ -232,7 +241,7 @@ class _HomePageState extends State<HomePage> {
                         _hasIPTV
                             ? AppLocalizations.of(context)?.my_iptv ?? 'MY IPTV'
                             : AppLocalizations.of(context)?.buy_iptv ?? 'BUY IPTV',
-                        style: TextStyle(color: Colors.white))),
+                        style: const TextStyle(color: Colors.white))),
               Expanded(
                   child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -260,15 +269,17 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       case UIState.PLAYLIST:
-        return PlaylistWidget(_link, null, onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _droDownLanguages, _dropDownCategories, _hasFilter, true);
+        return PlaylistWidget(_link, null, _onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
+            _droDownLanguages, _dropDownCategories, _hasFilter, true, db);
       case UIState.PLAYER:
-        return Player(_link.trim(), _title);
+        return Player(_link.trim(), _title, _logo, db);
       case UIState.MY_PLAYLISTS:
-        return MyPlaylists(onPlaylistTap);
+        return MyPlaylists(onPlaylistTap, db);
       case UIState.MY_IPTV:
-        return PlaylistWidget(_link, _xLink, onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _droDownLanguages, _dropDownCategories, _hasFilter, false);
+        return PlaylistWidget(_link, _xLink, _onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
+            _droDownLanguages, _dropDownCategories, _hasFilter, false, db);
+      case UIState.HISTORY:
+        return HistoryWidget(db, _historyItemTap);
     }
   }
 
@@ -323,9 +334,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   myIptv() {
-    _link = widget.playlist;
-    log(TAG, _link);
-    _xLink = widget.xList;
+    log(TAG, 'my iptv=>$myIPTVPlaylist');
+    if (myIPTVPlaylist != null)
+      _link = myIPTVPlaylist;
+    else {
+      _link = widget.playlist;
+      _xLink = widget.xList;
+    }
     setState(() => uiState = UIState.MY_IPTV);
     stateStack.add(UIState.MY_IPTV);
   }
@@ -345,6 +360,32 @@ class _HomePageState extends State<HomePage> {
 
   void setConnected(ConnectivityResult connectivityResult) =>
       _connectedToInet = connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
+
+  void _history() => setState(() {
+        uiState = UIState.HISTORY;
+        stateStack.add(UIState.HISTORY);
+      });
+
+  void initDB() async {
+    db = await openDatabase(
+      p.join(await getDatabasesPath(), DB_NAME),
+      onCreate: (db, v) {
+        db.execute(CREATE_TABLE_HISTORY);
+        db.execute(CREATE_TABLE_PLAYLIST);
+      },
+      version: 1,
+    );
+  }
+
+  _historyItemTap(String title, String link, String? logo) {
+    setState(() {
+      _title = title;
+      _link = link;
+      _logo = _logo;
+      uiState = UIState.PLAYER;
+      stateStack.add(uiState);
+    });
+  }
 }
 
-enum UIState { MAIN, PLAYLIST, PLAYER, MY_PLAYLISTS, MY_IPTV }
+enum UIState { MAIN, PLAYLIST, PLAYER, MY_PLAYLISTS, MY_IPTV, HISTORY }

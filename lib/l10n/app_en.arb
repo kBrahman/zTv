@@ -145,5 +145,7 @@
   "ln": "Lingala",
   "mnk": "Mandinka",
   "mr": "Marathi",
-  "or": "Odia"
+  "or": "Odia",
+  "history": "History",
+  "playlist_link_broken": "Playlist link is broken. Can't save it."
 }

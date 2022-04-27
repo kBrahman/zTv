@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import 'package:ztv/model/playlist.dart';
 
@@ -15,24 +14,27 @@ import '../util/util.dart';
 import 'channel.dart';
 
 class PlaylistWidget extends StatefulWidget {
-  var _linkOrList;
+  dynamic _linkOrList;
 
-  final onTap;
+  final Function onTap;
 
-  final _offset;
+  final double _offset;
 
   String? _query;
-  var _filterLanguage;
-  var _filterCategory;
-  final _txtFieldTxt;
-  List<String> _dropDownLanguages;
-  List<String> _dropDownCategories;
+  String _filterLanguage;
+  String _filterCategory;
+  final String? _playlistLink;
+  final List<String> _dropDownLanguages;
+  final List<String> _dropDownCategories;
   var hasFilter;
   var hasSavePlayList;
   final _xLink;
+  final Database db;
 
   PlaylistWidget(this._linkOrList, this._xLink, this.onTap, this._offset, this._query, this._filterLanguage, this._filterCategory,
-      this._txtFieldTxt, this._dropDownLanguages, this._dropDownCategories, this.hasFilter, this.hasSavePlayList);
+      this._playlistLink, this._dropDownLanguages, this._dropDownCategories, this.hasFilter, this.hasSavePlayList, this.db,
+      {Key? key})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _PlaylistWidgetState();
@@ -61,7 +63,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         Expanded(
             child: searchActive
                 ? TextField(
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.white),
                     onChanged: (String txt) {
                       if (txt.trim().isNotEmpty)
                         setState(() {
@@ -71,14 +73,14 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                     controller: ctr,
                     cursorColor: Colors.white,
                     // controller: TextEditingController(text: widget._query),
-                    decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.only(top: 16),
-                        focusedBorder: UnderlineInputBorder(borderSide: const BorderSide(color: Colors.white))),
+                    decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.only(top: 16),
+                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white))),
                   )
                 : Container()),
         searchActive
             ? IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.close,
                   color: Colors.white,
                 ),
@@ -89,14 +91,14 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                 }),
               )
             : IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.search,
                   color: Colors.white,
                 ),
                 onPressed: () => setState(() => showSearchView = true)),
         widget.hasFilter
             ? IconButton(
-                icon: Icon(Icons.filter_list, color: Colors.white),
+                icon: const Icon(Icons.filter_list, color: Colors.white),
                 onPressed: () => dialog(
                         context,
                         (lan, cat) => setState(() {
@@ -107,16 +109,16 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                       widget._filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
                       widget._filterCategory = getLocalizedCategory(ANY_CATEGORY, context);
                     }))
-            : SizedBox.shrink(),
+            : const SizedBox.shrink(),
         if (widget.hasSavePlayList)
           IconButton(
-              icon: Icon(Icons.save, color: Colors.white),
-              onPressed: () => showDialog(context: context, builder: (_) => SaveDialog(widget._txtFieldTxt)))
+              icon: const Icon(Icons.save, color: Colors.white),
+              onPressed: () => showDialog(context: context, builder: (_) => SaveDialog(widget._playlistLink, widget.db)))
       ]),
       body: FutureBuilder(
         future: (widget._query == null || widget._query?.isEmpty == true) &&
-                (widget._filterLanguage == null || widget._filterLanguage == getLocalizedLanguage(ANY_LANGUAGE, context)) &&
-                (widget._filterCategory == null || widget._filterCategory == getLocalizedCategory(ANY_CATEGORY, context))
+                (widget._filterLanguage == getLocalizedLanguage(ANY_LANGUAGE, context)) &&
+                (widget._filterCategory == getLocalizedCategory(ANY_CATEGORY, context))
             ? getChannels(widget._linkOrList, widget._xLink)
             : getFilteredChannels(getChannels(widget._linkOrList, widget._xLink), widget._query ?? ''),
         builder: (context, snapshot) {
@@ -130,7 +132,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                     controller: _scrollController,
                   );
           } else {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
         },
       ),
@@ -141,7 +143,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     log(TAG, 'getChannels');
     if (link is List<Channel>) {
       log(TAG, 'link is list');
-      link.forEach((ch) {
+      for (var ch in link) {
         if (ch.isOff) {
           link.remove(ch);
         } else {
@@ -149,7 +151,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
           ch.filterCategory = widget._filterCategory;
           ch.sc = _scrollController;
         }
-      });
+      }
       return Future.value(link);
     } else if (link.startsWith('/')) {
       return Future.value(fileToPlaylist(link));
@@ -195,8 +197,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         final channel = Channel(
             title,
             link,
-            (String url, offset, query, language, category) => widget.onTap(url, list, offset, query, language, category, title,
-                widget._dropDownLanguages, widget._dropDownCategories, widget.hasFilter));
+            (offset, query, language, category, logo) => widget.onTap(link, list, offset, query, language, category, title, logo,
+                widget._dropDownLanguages, widget._dropDownCategories, widget.hasFilter, !widget.hasSavePlayList));
         channel.sc = _scrollController;
         if (category != null) channel.categories.add(getLocalizedCategory(category, context));
         if (title.contains(RegExp('FRANCE|\\|FR\\|'))) {
@@ -368,9 +370,10 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
 class SaveDialog extends StatelessWidget {
   static const TAG = 'SaveDialog';
 
-  var link;
+  final String? playlistLink;
+  final Database db;
 
-  SaveDialog(this.link);
+  const SaveDialog(this.playlistLink, this.db, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -384,14 +387,17 @@ class SaveDialog extends StatelessWidget {
           TextField(
             controller: TextEditingController(text: name),
             onChanged: (v) => name = v,
-          )
+          ),
+          if (playlistLink == null)
+            Text(AppLocalizations.of(context)?.playlist_link_broken ?? "Playlist link is broken. Can't save it.",
+                style: const TextStyle(color: Colors.red))
         ],
       ),
       actions: [
         TextButton(
             onPressed: () {
-              if (name.isEmpty) return;
-              savePlaylist(Playlist(name, link));
+              if (name.isEmpty || playlistLink == null) return;
+              savePlaylist(Playlist(name, playlistLink!));
               Navigator.of(context).pop();
             },
             child: const Text('Save'))
@@ -399,12 +405,7 @@ class SaveDialog extends StatelessWidget {
     );
   }
 
-  Future<void> savePlaylist(Playlist playlist) async {
-    openDatabase(p.join(await getDatabasesPath(), DB_NAME), onCreate: (db, v) {
-      return db.execute('CREATE TABLE playlist(name TEXT, link TEXT PRIMARY KEY)');
-    }, version: 1)
-        .then((db) => db.insert('playlist', playlist.toMap(), conflictAlgorithm: ConflictAlgorithm.replace));
-  }
+  savePlaylist(Playlist playlist) => db.insert('playlist', playlist.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
 }
 
 class ZtvDialog extends StatefulWidget {

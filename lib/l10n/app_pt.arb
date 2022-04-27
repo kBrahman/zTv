@@ -126,5 +126,7 @@
   "ui": "Inuktitut",
   "ky": "Quirguistão",
   "ln": "Lingala",
-  "mnk": "Mandinga"
+  "mnk": "Mandinga",
+  "history": "História",
+  "playlist_link_broken": "O link da lista de reprodução está quebrado. Não é possível salvá-lo."
 }
