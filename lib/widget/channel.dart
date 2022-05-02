@@ -27,10 +27,7 @@ class Channel extends StatelessWidget {
     return Padding(
         padding: const EdgeInsets.all(4),
         child: GestureDetector(
-          onTap: () {
-            log(TAG, 'on tap=>$filterCategory');
-            tap(sc?.offset, query, filterLanguage, filterCategory, logo);
-          },
+          onTap: () => tap(sc?.offset, query, filterLanguage, filterCategory, logo),
           child: Card(
             elevation: 4,
             child: Column(

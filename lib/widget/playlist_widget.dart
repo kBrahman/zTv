@@ -26,8 +26,8 @@ class PlaylistWidget extends StatefulWidget {
   final String? _playlistLink;
   final List<String> _dropDownLanguages;
   final List<String> _dropDownCategories;
-  var hasFilter;
-  var hasSavePlayList;
+  bool hasFilter;
+  bool hasSavePlayList;
   final _xLink;
   final Database db;
 
@@ -58,7 +58,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   Widget build(BuildContext context) {
     var searchActive = showSearchView || (widget._query != null && widget._query?.isNotEmpty == true);
     return Scaffold(
-      appBar: AppBar(leading: BackButton(), actions: [
+      appBar: AppBar(leading: const BackButton(), actions: [
         const SizedBox(width: 48),
         Expanded(
             child: searchActive
@@ -125,7 +125,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
           if (snapshot.connectionState == ConnectionState.done) {
             return linkBroken
                 ? Center(
-                    child: Text(AppLocalizations.of(context)?.broken_link ?? 'Link is broken!', style: TextStyle(fontSize: 25)))
+                    child: Text(AppLocalizations.of(context)?.broken_link ?? 'Link is broken!',
+                        style: const TextStyle(fontSize: 25)))
                 : GridView.count(
                     crossAxisCount: MediaQuery.of(context).size.width >= 834 ? 4 : 3,
                     children: snapshot.data as List<Widget>,
@@ -258,16 +259,19 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     return Future.value(list);
   }
 
-  Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) => f.then((list) => list.where((element) {
-        element.query = widget._query ?? '';
-        return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
-            (widget._filterLanguage != getLocalizedLanguage(ANY_LANGUAGE, context)
-                ? element.languages.contains(widget._filterLanguage)
-                : true) &&
-            (widget._filterCategory != getLocalizedCategory(ANY_CATEGORY, context)
-                ? element.categories.contains(widget._filterCategory)
-                : true);
-      }).toList());
+  Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) {
+    log(TAG, 'get filtered channels');
+    return f.then((list) => list.where((element) {
+          element.query = widget._query ?? '';
+          return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
+              (widget._filterLanguage != getLocalizedLanguage(ANY_LANGUAGE, context)
+                  ? element.languages.contains(widget._filterLanguage)
+                  : true) &&
+              (widget._filterCategory != getLocalizedCategory(ANY_CATEGORY, context)
+                  ? element.categories.contains(widget._filterCategory)
+                  : true);
+        }).toList());
+  }
 
   void dialog(ctx, submit, clear) => showDialog(
       context: ctx,

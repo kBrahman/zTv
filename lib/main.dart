@@ -1,5 +1,7 @@
 // ignore_for_file: curly_braces_in_flow_control_structures, constant_identifier_names
 
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:file_picker/file_picker.dart';
@@ -30,7 +32,6 @@ var colorCodes = {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  InAppPurchaseAndroidPlatformAddition.enablePendingPurchases();
   String data = await rootBundle.loadString('assets/local.properties');
   var iterable = data.split('\n').where((element) => !element.startsWith('#') && element.isNotEmpty);
   var props = {for (var v in iterable) v.split('=')[0]: v.split('=')[1]};
@@ -187,8 +188,8 @@ class _HomePageState extends State<HomePage> {
       if (uiState != UIState.PLAYLIST && uiState != UIState.MY_IPTV) {
         _query = null;
         _offset = 0.0;
-        _filterLanguage = ANY_LANGUAGE;
-        _filterCategory = ANY_CATEGORY;
+        _filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
+        _filterCategory = getLocalizedCategory(ANY_CATEGORY, context);
       }
     });
     return Future.value(false);

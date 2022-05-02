@@ -1,5 +1,7 @@
 // ignore_for_file: constant_identifier_names, curly_braces_in_flow_control_structures
 
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,12 +35,17 @@ class _PlayerState extends State<Player> {
   bool delegateToVLC = false;
   bool isPlaying = false;
   var controlVisible = false;
+  bool paused = false;
+  var chOff = false;
+  bool inserted = false;
 
   _PlayerState();
 
   @override
   void initState() {
     var dataSource = widget._link;
+    if (dataSource.startsWith('https://59c5c86e10038.streamlock.net'))
+      dataSource = dataSource.replaceFirst('59c5c86e10038.streamlock.net', 'panel.dattalive.com');
     delegateToVLC = delegate(dataSource);
     if (delegateToVLC)
       initVLC(dataSource);
@@ -50,6 +57,7 @@ class _PlayerState extends State<Player> {
   }
 
   void initVLC(String url) {
+    log(TAG, 'init vlc');
     _controller = VlcPlayerController.network(url, autoPlay: true, options: VlcPlayerOptions())
       ..addOnInitListener(() => repeatedCheck(_controller));
   }
@@ -66,19 +74,17 @@ class _PlayerState extends State<Player> {
   Widget build(BuildContext context) {
     final isAudioFile = (widget._link.endsWith('.mp3') || widget._link.endsWith('.flac'));
     var miniMaxWidget = Positioned(
-        bottom: 4,
-        right: 4,
-        child: Visibility(
-          child: IconButton(
-              icon: const Icon(
-                Icons.fullscreen_exit,
-                color: Colors.white,
-              ),
-              onPressed: () => SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-                  .then((value) => SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values))
-                  .then((value) => setState(() => fullscreen = false))),
-          visible: fullscreen,
-        ));
+      bottom: 4,
+      right: 4,
+      child: IconButton(
+          icon: const Icon(
+            Icons.fullscreen_exit,
+            color: Colors.white,
+          ),
+          onPressed: () => SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+              .then((value) => SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values))
+              .then((value) => setState(() => fullscreen = false))),
+    );
 
     return Scaffold(
       backgroundColor: fullscreen ? Colors.black : Colors.white,
@@ -88,109 +94,144 @@ class _PlayerState extends State<Player> {
               leading: const BackButton(),
               title: Text(isAudioFile ? getName(widget._link) : widget._title),
               actions: [
-                isAudioFile
-                    ? const SizedBox.shrink()
-                    : IconButton(
-                        icon: Icon(Icons.fullscreen),
-                        onPressed: () => SystemChrome.setEnabledSystemUIOverlays([])
-                            .then((value) => SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]))
-                            .then((value) => setState(() => fullscreen = true)),
-                      )
+                if (!isAudioFile)
+                  IconButton(
+                    icon: const Icon(Icons.fullscreen),
+                    onPressed: () => SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.top])
+                        .then((value) => SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]))
+                        .then((value) => setState(() => fullscreen = true)),
+                  )
               ],
             ),
-      body: delegateToVLC
-          ? Stack(children: [
-              Align(
-                  child: VlcPlayer(
-                    controller: _controller,
-                    aspectRatio: (_controller.value.size != null && _controller.value.size.aspectRatio != 0.0)
-                        ? _controller.value.size.aspectRatio
-                        : fullscreen
-                            ? .6
-                            : 1.7,
-                  ),
-                  alignment: Alignment.topCenter),
-              miniMaxWidget,
-              if (!isPlaying) Center(child: CircularProgressIndicator())
-            ])
-          : FutureBuilder(
-              future: _initializeVideoPlayerFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  final err = snapshot.error;
-                  var hasError = snapshot.hasError;
-                  if (hasError && err is PlatformException && err.message?.contains('Source error') == true) {
-                    log(TAG, 'source err, getting location');
-                    http.Request req = http.Request("Get", Uri.parse(_controller.dataSource))..followRedirects = false;
-                    http.Client baseClient = http.Client();
-                    baseClient.send(req).then((resp) {
-                      var loc = resp.headers['location'];
-                      if (loc != null)
-                        setState(() {
-                          _controller = VideoPlayerController.network(loc);
-                          _initializeVideoPlayerFuture = _controller.initialize();
-                        });
-                      else
-                        return const WidgetChOff();
-                    });
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (hasError &&
-                      err is PlatformException &&
-                      err.message?.contains('MediaCodecVideoRenderer error') == true) {
-                    log(TAG, 'trying to play with VLC');
-                    delegateToVLC = true;
-                    initAndSetDelegate(widget._link);
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (hasError) return const WidgetChOff();
-                  _controller.play();
-                  widget.db.insert('history', {'title': widget._title, 'link': widget._link, 'logo': widget._logo},
-                      conflictAlgorithm: ConflictAlgorithm.abort);
-                  final size = _controller.value.size;
-                  return isAudioFile
-                      ? MusicPlayer(_controller)
-                      : Stack(
-                          children: [
-                            Align(
-                              child: AspectRatio(
-                                  aspectRatio: (size == null || size.aspectRatio == 0.0) ? 1.25 : size.aspectRatio,
-                                  // Use the VideoPlayer widget to display the video.
-                                  child: GestureDetector(
-                                      child: Stack(children: [
-                                        VideoPlayer(_controller),
-                                        if (controlVisible)
-                                          Align(
-                                              child: IconButton(
-                                                  icon: const Icon(Icons.pause, color: Colors.white),
-                                                  onPressed: () {
-                                                    log(TAG, 'on pressed');
-                                                    _controller.pause();
-                                                  }))
-                                      ]),
-                                      onTap: () {
-                                        log(TAG, 'tap');
-                                        // setState(() => controlVisible = true);
-                                        // Future.delayed(Duration(seconds: 1), () => setState(() => controlVisible = false));
-                                      })),
-                              alignment: Alignment.topCenter,
+      body: chOff
+          ? const WidgetChOff()
+          : delegateToVLC
+              ? Stack(children: [
+                  Align(
+                      child: GestureDetector(
+                          child: Stack(children: [
+                            VlcPlayer(
+                              controller: _controller,
+                              aspectRatio: (_controller.value.size != null && _controller.value.size.aspectRatio != 0.0)
+                                  ? _controller.value.size.aspectRatio
+                                  : fullscreen
+                                      ? .6
+                                      : 1.7,
                             ),
-                            miniMaxWidget,
-                          ],
-                        );
-                } else {
-                  return Center(child: CircularProgressIndicator());
-                }
-              },
-            ),
+                            if (controlVisible)
+                              Align(
+                                  child: IconButton(
+                                      icon: Icon(_controller.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
+                                          color: Colors.white, size: 48),
+                                      onPressed: () {
+                                        log(TAG, 'is playing=>${_controller.value.isPlaying}');
+                                        if (_controller.value.isPlaying) _controller.pause();
+                                        setState(() {
+                                          paused = !paused;
+                                        });
+                                      }))
+                          ]),
+                          onTap: onScreenTap),
+                      alignment: Alignment.topCenter),
+                  if (fullscreen) miniMaxWidget,
+                  if (!isPlaying) pb()
+                ])
+              : FutureBuilder(
+                  future: _initializeVideoPlayerFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      final err = snapshot.error;
+                      var hasError = snapshot.hasError;
+                      final trace = snapshot.stackTrace;
+                      if (hasError && err is PlatformException && err.message?.contains('Source error') == true) {
+                        log(TAG, 'source err=>$trace, getting location');
+                        http.Request req = http.Request("Get", Uri.parse(_controller.dataSource))..followRedirects = false;
+                        http.Client baseClient = http.Client();
+                        baseClient.send(req).then((resp) {
+                          var loc = resp.headers['location'];
+                          log(TAG, 'status code=>${resp.statusCode}');
+                          log(TAG, 'loc=>$loc');
+                          if (loc != null)
+                            setState(() {
+                              _controller = VideoPlayerController.network(loc);
+                              _initializeVideoPlayerFuture = _controller.initialize();
+                            });
+                          else
+                            initAndSetDelegate(widget._link);
+                        }, onError: (e, s) {
+                          log(TAG, 'onError=>$e');
+                          if (e is SocketException)
+                            setState(() => chOff = true);
+                          else {
+                            log(TAG, 'e=>${e.message}');
+                            initAndSetDelegate(widget._link);
+                          }
+                        });
+                        return pb();
+                      } else if (hasError &&
+                          err is PlatformException &&
+                          err.message?.contains('MediaCodecVideoRenderer error') == true) {
+                        log(TAG, 'trying to play with VLC');
+                        initAndSetDelegate(widget._link);
+                        return pb();
+                      } else if (hasError) return const WidgetChOff();
+                      if (!paused) _controller.play();
+                      if (!inserted)
+                        widget.db.insert('history', {'title': widget._title, 'link': widget._link, 'logo': widget._logo},
+                            conflictAlgorithm: ConflictAlgorithm.abort);
+                      inserted = true;
+                      final size = _controller.value.size;
+
+                      return isAudioFile
+                          ? MusicPlayer(_controller)
+                          : Stack(
+                              children: [
+                                Align(
+                                  child: AspectRatio(
+                                      aspectRatio: (size == null || size.aspectRatio == 0.0) ? 1.25 : size.aspectRatio,
+                                      // Use the VideoPlayer widget to display the video.
+                                      child: GestureDetector(
+                                          child: Stack(children: [
+                                            VideoPlayer(_controller),
+                                            if (controlVisible)
+                                              Align(
+                                                  child: IconButton(
+                                                      icon: Icon(
+                                                          _controller.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
+                                                          color: Colors.white,
+                                                          size: 48),
+                                                      onPressed: () {
+                                                        log(TAG, 'is playing=>${_controller.value.isPlaying}');
+                                                        if (_controller.value.isPlaying) _controller.pause();
+                                                        setState(() {
+                                                          paused = !paused;
+                                                        });
+                                                      }))
+                                          ]),
+                                          onTap: onScreenTap)),
+                                  alignment: Alignment.topCenter,
+                                ),
+                                if (fullscreen) miniMaxWidget,
+                              ],
+                            );
+                    } else {
+                      return pb();
+                    }
+                  },
+                ),
     );
   }
 
+  void onScreenTap() {
+    setState(() => controlVisible = true);
+    Future.delayed(const Duration(seconds: 2), () => setState(() => controlVisible = false));
+  }
+
+  Center pb() => const Center(child: CircularProgressIndicator());
+
   getName(String link) => link.substring(link.lastIndexOf('/') + 1);
 
-  bool delegate(data) => data is String
-      ? data.startsWith('rtmp://')
-      : data is Channel
-          ? data.url.startsWith('rtmp://')
-          : false;
+  bool delegate(data) => data.startsWith('rtmp://');
 
   void repeatedCheck(VlcPlayerController ctr) {
     Future.delayed(const Duration(seconds: 1), ctr.isPlaying).then((isPlaying) {
