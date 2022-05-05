@@ -156,6 +156,8 @@ class _PlayerState extends State<Player> {
                               _controller = VideoPlayerController.network(loc);
                               _initializeVideoPlayerFuture = _controller.initialize();
                             });
+                          else if (resp.statusCode == 403)
+                            setState(() => chOff = true);
                           else
                             initAndSetDelegate(widget._link);
                         }, onError: (e, s) {
@@ -252,10 +254,9 @@ class WidgetChOff extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      heightFactor: 1,
-      child: Text(AppLocalizations.of(context)?.ch_offline ?? 'This channel is offline now. Come later please',
-          textScaleFactor: 1.25),
-    );
+    return Padding(
+        padding: const EdgeInsets.all(8),
+        child: Text(AppLocalizations.of(context)?.ch_offline ?? 'This channel is offline now. Come later please',
+            textScaleFactor: 1.25));
   }
 }

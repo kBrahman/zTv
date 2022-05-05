@@ -1,7 +1,5 @@
 // ignore_for_file: curly_braces_in_flow_control_structures, constant_identifier_names
 
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:file_picker/file_picker.dart';
@@ -11,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
@@ -121,7 +118,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _play() {
-    log(TAG, _link);
     if (_link is String && _link == widget.playlist) return;
     _droDownLanguages = [];
     _dropDownCategories = [];
@@ -190,6 +186,7 @@ class _HomePageState extends State<HomePage> {
         _offset = 0.0;
         _filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
         _filterCategory = getLocalizedCategory(ANY_CATEGORY, context);
+        _logo = null;
       }
     });
     return Future.value(false);
@@ -286,7 +283,6 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> checkSubs() async {
     id = await signIn();
-    log(TAG, 'checkSubs id=>$id');
     if (id == null) {
       setState(() {
         _hasIPTV = false;
@@ -297,7 +293,6 @@ class _HomePageState extends State<HomePage> {
     var doc = FirebaseFirestore.instance.doc('user/$id');
     doc.get().then((value) {
       var exists = value.exists;
-      log(TAG, 'exists=>$exists');
       setState(() {
         _hasIPTV = exists && Timestamp.now().seconds - (value['time'] as Timestamp).seconds < YEAR_IN_SEC;
       });
@@ -309,7 +304,6 @@ class _HomePageState extends State<HomePage> {
   Future<String> signIn() async {
     GoogleSignIn _googleSignIn = GoogleSignIn(scopes: <String>['email']);
     final signedIn = await _googleSignIn.isSignedIn();
-    log(TAG, 'is signed in=>$signedIn, current user=>${_googleSignIn.currentUser}');
     id = _googleSignIn.currentUser?.email;
     if (id == null && (id = (await _googleSignIn.signInSilently())?.email) == null) id = (await _googleSignIn.signIn())?.email;
 
@@ -317,7 +311,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   buyIptv(bool afterCheckSubs) async {
-    log(TAG, 'buy iptv');
     if (id == null && !afterCheckSubs) {
       await checkSubs();
     } else if (id == null && afterCheckSubs)
@@ -335,7 +328,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   myIptv() {
-    log(TAG, 'my iptv=>$myIPTVPlaylist');
     if (myIPTVPlaylist != null)
       _link = myIPTVPlaylist;
     else {
