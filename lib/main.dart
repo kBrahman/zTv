@@ -12,6 +12,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:ztv/model/play_list_info.dart';
 import 'package:ztv/model/purchasable_product.dart';
 import 'package:ztv/util/util.dart';
 import 'package:ztv/util/ztv_purchase.dart';
@@ -92,13 +93,15 @@ class _HomePageState extends State<HomePage> {
   final stateStack = [UIState.MAIN];
   List<String> _droDownLanguages = [];
   List<String> _dropDownCategories = [];
-  var _hasFilter = false;
-  var _hasIPTV;
+  bool? _hasIPTV;
   var purchase = ZtvPurchases();
   String? id;
   late Database db;
   String? _logo;
   List<Widget>? myIPTVPlaylist;
+  late VoidCallback _onChannelOff;
+  final _myIPTVInfo = PlaylistInfo();
+  final _info = PlaylistInfo();
 
   @override
   void initState() {
@@ -114,7 +117,6 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _hasIPTV = prefs.getBool(HAS_IPTV) ?? false;
     });
-    log(TAG, 'hasIPTV =>$_hasIPTV');
   }
 
   void _play() {
@@ -144,23 +146,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return WillPopScope(onWillPop: willPop, child: getChild());
-  }
+  Widget build(BuildContext context) => WillPopScope(onWillPop: willPop, child: getChild());
 
   void _onTap(link, List<Widget> data, double offset, String query, filterLanguage, filterCategory, title, logo, filterLanguages,
-      categories, hasFilter, fromMYIPTV) {
+      categories, hasFilter, onChannelOff) {
+    _onChannelOff = onChannelOff;
     _filterLanguage = filterLanguage;
     _filterCategory = filterCategory;
     _title = title;
     _droDownLanguages = filterLanguages;
     _dropDownCategories = categories;
-    _hasFilter = hasFilter;
     _logo = logo;
     _dataHolder = data;
     _offset = offset;
     _query = query;
-    if (fromMYIPTV) myIPTVPlaylist = data;
     setState(() {
       _link = link;
       uiState = UIState.PLAYER;
@@ -230,13 +229,13 @@ class _HomePageState extends State<HomePage> {
                             ? AppLocalizations.of(context)?.get_iptv_txt(purchase.product!.price, CHANNEL_COUNT) ??
                                 'Get $CHANNEL_COUNT channels only for ${purchase.product!.price}/year'
                             : AppLocalizations.of(context)?.processing ?? 'Processing...',
-                        style: TextStyle(fontSize: 14))),
+                        style: const TextStyle(fontSize: 14))),
               if (_hasIPTV != null && purchase.product != null)
                 TextButton(
                     style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
-                    onPressed: () => _hasIPTV ? myIptv() : buyIptv(false),
+                    onPressed: () => _hasIPTV! ? myIptv() : buyIptv(false),
                     child: Text(
-                        _hasIPTV
+                        _hasIPTV!
                             ? AppLocalizations.of(context)?.my_iptv ?? 'MY IPTV'
                             : AppLocalizations.of(context)?.buy_iptv ?? 'BUY IPTV',
                         style: const TextStyle(color: Colors.white))),
@@ -268,14 +267,14 @@ class _HomePageState extends State<HomePage> {
         );
       case UIState.PLAYLIST:
         return PlaylistWidget(_link, null, _onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _droDownLanguages, _dropDownCategories, _hasFilter, true, db);
+            _droDownLanguages, _dropDownCategories, true, db, null, _info);
       case UIState.PLAYER:
-        return Player(_link.trim(), _title, _logo, db);
+        return Player(_link.trim(), _title, _logo, db, _onChannelOff);
       case UIState.MY_PLAYLISTS:
         return MyPlaylists(onPlaylistTap, db);
       case UIState.MY_IPTV:
         return PlaylistWidget(_link, _xLink, _onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _droDownLanguages, _dropDownCategories, _hasFilter, false, db);
+            _droDownLanguages, _dropDownCategories, false, db, (l) => myIPTVPlaylist = l, _myIPTVInfo);
       case UIState.HISTORY:
         return HistoryWidget(db, _historyItemTap);
     }
@@ -296,8 +295,8 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _hasIPTV = exists && Timestamp.now().seconds - (value['time'] as Timestamp).seconds < YEAR_IN_SEC;
       });
-      if (!_hasIPTV) buyIptv(true);
-      SharedPreferences.getInstance().then((prefs) => prefs.setBool(HAS_IPTV, _hasIPTV));
+      if (!_hasIPTV!) buyIptv(true);
+      SharedPreferences.getInstance().then((prefs) => prefs.setBool(HAS_IPTV, _hasIPTV!));
     });
   }
 
@@ -320,7 +319,7 @@ class _HomePageState extends State<HomePage> {
           id!,
           () => setState(() {
                 _hasIPTV = true;
-                SharedPreferences.getInstance().then((value) => value.setBool(HAS_IPTV, _hasIPTV));
+                SharedPreferences.getInstance().then((value) => value.setBool(HAS_IPTV, _hasIPTV!));
               }),
           () => setState(() => purchase.product?.status = ProductStatus.purchasable));
       setState(() => purchase.product?.status = ProductStatus.pending);

@@ -20,8 +20,16 @@ class Player extends StatefulWidget {
   final String _title;
   final Database db;
   final String? _logo;
+  final VoidCallback onChannelOff;
 
-  const Player(this._link, this._title, this._logo, this.db, {Key? key}) : super(key: key);
+  const Player(
+    this._link,
+    this._title,
+    this._logo,
+    this.db,
+    this.onChannelOff, {
+    Key? key,
+  }) : super(key: key);
 
   @override
   _PlayerState createState() => _PlayerState();
@@ -82,7 +90,7 @@ class _PlayerState extends State<Player> {
             color: Colors.white,
           ),
           onPressed: () => SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-              .then((value) => SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values))
+              .then((value) => SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]))
               .then((value) => setState(() => fullscreen = false))),
     );
 
@@ -157,13 +165,13 @@ class _PlayerState extends State<Player> {
                               _initializeVideoPlayerFuture = _controller.initialize();
                             });
                           else if (resp.statusCode == 403)
-                            setState(() => chOff = true);
+                            off();
                           else
                             initAndSetDelegate(widget._link);
                         }, onError: (e, s) {
                           log(TAG, 'onError=>$e');
                           if (e is SocketException)
-                            setState(() => chOff = true);
+                            off();
                           else {
                             log(TAG, 'e=>${e.message}');
                             initAndSetDelegate(widget._link);
@@ -222,6 +230,11 @@ class _PlayerState extends State<Player> {
                   },
                 ),
     );
+  }
+
+  void off() {
+    setState(() => chOff = true);
+    widget.onChannelOff();
   }
 
   void onScreenTap() {

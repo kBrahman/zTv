@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:sqflite/sqflite.dart';
+import 'package:ztv/model/play_list_info.dart';
 import 'package:ztv/model/playlist.dart';
 
 import '../util/util.dart';
@@ -26,13 +27,27 @@ class PlaylistWidget extends StatefulWidget {
   final String? _playlistLink;
   final List<String> _dropDownLanguages;
   final List<String> _dropDownCategories;
-  bool hasFilter;
   bool hasSavePlayList;
-  final _xLink;
+  final String? _xLink;
   final Database db;
+  final Function(List<Channel> list)? onLoaded;
+  final PlaylistInfo info;
 
-  PlaylistWidget(this._linkOrList, this._xLink, this.onTap, this._offset, this._query, this._filterLanguage, this._filterCategory,
-      this._playlistLink, this._dropDownLanguages, this._dropDownCategories, this.hasFilter, this.hasSavePlayList, this.db,
+  PlaylistWidget(
+      this._linkOrList,
+      this._xLink,
+      this.onTap,
+      this._offset,
+      this._query,
+      this._filterLanguage,
+      this._filterCategory,
+      this._playlistLink,
+      this._dropDownLanguages,
+      this._dropDownCategories,
+      this.hasSavePlayList,
+      this.db,
+      this.onLoaded,
+      this.info,
       {Key? key})
       : super(key: key);
 
@@ -51,6 +66,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   void initState() {
     _scrollController = ScrollController(initialScrollOffset: widget._offset);
     ctr = TextEditingController(text: widget._query);
+    log(TAG, 'has filter=>${widget.info.hasFilter}');
     super.initState();
   }
 
@@ -96,7 +112,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                   color: Colors.white,
                 ),
                 onPressed: () => setState(() => showSearchView = true)),
-        widget.hasFilter
+        widget.info.hasFilter
             ? IconButton(
                 icon: const Icon(Icons.filter_list, color: Colors.white),
                 onPressed: () => dialog(
@@ -141,11 +157,11 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   }
 
   Future<List<Channel>> getChannels(link, xLink) {
-    log(TAG, 'getChannels');
     if (link is List<Channel>) {
       log(TAG, 'link is list');
       for (var ch in link) {
         if (ch.isOff) {
+          log(TAG, 'ch=>$ch is off');
           link.remove(ch);
         } else {
           ch.filterLanguage = widget._filterLanguage;
@@ -154,9 +170,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         }
       }
       return Future.value(link);
-    } else if (link.startsWith('/')) {
-      return Future.value(fileToPlaylist(link));
-    }
+    } else if (link.startsWith('/')) return Future.value(fileToPlaylist(link));
+
     return http.get(Uri.parse(widget._linkOrList)).then((value) async {
       if (value.statusCode == 404) {
         linkBroken = true;
@@ -178,7 +193,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   Future<List<Channel>> fileToPlaylist(link) => File(link).readAsString().then((value) => parse(value));
 
   Future<List<Channel>> parse(String data) async {
-    log(TAG, 'parse');
     final lines = data.split("\n");
     final list = <Channel>[];
     for (var i = 0; i < lines.length; i++) {
@@ -198,8 +212,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         final channel = Channel(
             title,
             link,
-            (offset, query, language, category, logo) => widget.onTap(link, list, offset, query, language, category, title, logo,
-                widget._dropDownLanguages, widget._dropDownCategories, widget.hasFilter, !widget.hasSavePlayList));
+            (offset, query, language, category, logo, ch) => widget.onTap(link, list, offset, query, language, category, title,
+                logo, widget._dropDownLanguages, widget._dropDownCategories, widget.info.hasFilter, () => list.remove(ch)));
         channel.sc = _scrollController;
         if (category != null) channel.categories.add(getLocalizedCategory(category, context));
         if (title.contains(RegExp('FRANCE|\\|FR\\|'))) {
@@ -247,15 +261,15 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         list.add(channel);
       }
     }
-    log(TAG, 'cats before sorting=>${widget._dropDownCategories}');
     widget._dropDownCategories.sort();
     widget._dropDownCategories.insert(0, getLocalizedCategory(ANY_CATEGORY, context));
     widget._dropDownLanguages.sort();
     widget._dropDownLanguages.insert(0, getLocalizedLanguage(ANY_LANGUAGE, context));
     widget._filterCategory = getLocalizedCategory(widget._filterCategory, context);
     widget._filterLanguage = getLocalizedLanguage(widget._filterLanguage, context);
-    setState(() => widget.hasFilter = (widget._dropDownCategories.length > 1 || widget._dropDownLanguages.length > 1));
+    setState(() => widget.info.hasFilter = (widget._dropDownCategories.length > 1 || widget._dropDownLanguages.length > 1));
     widget._linkOrList = list;
+    if (!widget.hasSavePlayList) widget.onLoaded?.call(list);
     return Future.value(list);
   }
 
@@ -431,12 +445,12 @@ class DialogState extends State<ZtvDialog> {
 
   @override
   Widget build(BuildContext context) {
-    var languageSpinnerAndTitle =
-        SpinnerAndTitle(widget.language, AppLocalizations.of(context)?.language ?? 'Language', widget.dropDownLanguages);
-    var categorySpinnerAndTitle =
-        SpinnerAndTitle(widget.category, AppLocalizations.of(context)?.category ?? 'Category', widget.dropDownCategories);
+    var of = AppLocalizations.of(context);
+    var languageSpinnerAndTitle = SpinnerAndTitle(widget.language, of?.language ?? 'Language', widget.dropDownLanguages);
+    var categorySpinnerAndTitle = SpinnerAndTitle(widget.category, of?.category ?? 'Category', widget.dropDownCategories);
+    var edgeInsetsOnlyRight2 = const EdgeInsets.only(right: 2);
     return AlertDialog(
-        title: Padding(child: Text(AppLocalizations.of(context)?.filter ?? 'Filter'), padding: EdgeInsets.only(bottom: 16)),
+        title: Padding(child: Text(AppLocalizations.of(context)?.filter ?? 'Filter'), padding: const EdgeInsets.only(bottom: 16)),
         contentPadding: const EdgeInsets.only(left: 4, right: 4),
         actions: [
           TextButton(
@@ -445,20 +459,22 @@ class DialogState extends State<ZtvDialog> {
                     widget.category = getLocalizedCategory(ANY_CATEGORY, context);
                     widget.clear();
                   }),
-              child: Text(AppLocalizations.of(context)?.reset ?? 'Reset')),
+              child: Text(of?.reset ?? 'Reset')),
           TextButton(
               onPressed: () {
                 widget.submit(languageSpinnerAndTitle.dropdownValue, categorySpinnerAndTitle.dropdownValue);
                 Navigator.of(context).pop();
               },
-              child: Text('OK'))
+              child: const Text('OK'))
         ],
-        content: Row(
-          children: [
-            Padding(padding: EdgeInsets.only(right: 2), child: languageSpinnerAndTitle),
-            Padding(padding: EdgeInsets.only(left: 2), child: categorySpinnerAndTitle)
-          ],
-        ));
+        content: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                Padding(padding: edgeInsetsOnlyRight2, child: languageSpinnerAndTitle),
+                Padding(padding: edgeInsetsOnlyRight2, child: categorySpinnerAndTitle)
+              ],
+            )));
   }
 }
 
@@ -481,26 +497,16 @@ class SpinnerAndTitleState extends State<SpinnerAndTitle> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(widget.title),
-        DropdownButton<String>(
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      Text(widget.title),
+      DropdownButton<String>(
           value: widget.dropdownValue,
           onChanged: (String? newValue) {
-            log(TAG, "on changed new val=>$newValue");
-            setState(() {
-              widget.dropdownValue = newValue;
-            });
+            setState(() => widget.dropdownValue = newValue);
           },
           items: widget.items.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-        )
-      ],
-    );
+            return DropdownMenuItem<String>(value: value, child: Text(value));
+          }).toList())
+    ]);
   }
 }

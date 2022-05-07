@@ -10,7 +10,7 @@ class Channel extends StatelessWidget {
   final String title;
   final languages = <String>{};
   var categories = <String>{};
-  final tap;
+  final Function tap;
   var isOff = false;
   ScrollController? sc;
   String query = '';
@@ -27,7 +27,7 @@ class Channel extends StatelessWidget {
     return Padding(
         padding: const EdgeInsets.all(4),
         child: GestureDetector(
-          onTap: () => tap(sc?.offset, query, filterLanguage, filterCategory, logo),
+          onTap: () => tap(sc?.offset, query, filterLanguage, filterCategory, logo, this),
           child: Card(
             elevation: 4,
             child: Column(
