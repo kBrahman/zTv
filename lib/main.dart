@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     checkConnection();
     hasIPTV();
-    initDB();
+    _initDB();
     super.initState();
   }
 
@@ -357,7 +357,7 @@ class _HomePageState extends State<HomePage> {
         stateStack.add(UIState.HISTORY);
       });
 
-  void initDB() async {
+  void _initDB() async {
     db = await openDatabase(
       p.join(await getDatabasesPath(), DB_NAME),
       onCreate: (db, v) {

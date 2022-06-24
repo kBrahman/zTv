@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -132,7 +131,6 @@ class _PlayerState extends State<Player> {
                                       icon: Icon(_controller.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
                                           color: Colors.white, size: 48),
                                       onPressed: () {
-                                        log(TAG, 'is playing=>${_controller.value.isPlaying}');
                                         if (_controller.value.isPlaying) _controller.pause();
                                         setState(() {
                                           paused = !paused;
@@ -152,13 +150,10 @@ class _PlayerState extends State<Player> {
                       var hasError = snapshot.hasError;
                       final trace = snapshot.stackTrace;
                       if (hasError && err is PlatformException && err.message?.contains('Source error') == true) {
-                        log(TAG, 'source err=>$trace, getting location');
                         http.Request req = http.Request("Get", Uri.parse(_controller.dataSource))..followRedirects = false;
                         http.Client baseClient = http.Client();
                         baseClient.send(req).then((resp) {
                           var loc = resp.headers['location'];
-                          log(TAG, 'status code=>${resp.statusCode}');
-                          log(TAG, 'loc=>$loc');
                           if (loc != null)
                             setState(() {
                               _controller = VideoPlayerController.network(loc);
@@ -169,11 +164,9 @@ class _PlayerState extends State<Player> {
                           else
                             initAndSetDelegate(widget._link);
                         }, onError: (e, s) {
-                          log(TAG, 'onError=>$e');
                           if (e is SocketException)
                             off();
                           else {
-                            log(TAG, 'e=>${e.message}');
                             initAndSetDelegate(widget._link);
                           }
                         });
@@ -211,7 +204,6 @@ class _PlayerState extends State<Player> {
                                                           color: Colors.white,
                                                           size: 48),
                                                       onPressed: () {
-                                                        log(TAG, 'is playing=>${_controller.value.isPlaying}');
                                                         if (_controller.value.isPlaying) _controller.pause();
                                                         setState(() {
                                                           paused = !paused;

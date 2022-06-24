@@ -1,9 +1,8 @@
 import 'dart:ffi';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:video_player/video_player.dart';
 
 class MusicPlayer extends StatefulWidget {
   final VideoPlayerController _controller;
@@ -31,7 +30,7 @@ class MusicPlayerState extends State<MusicPlayer> {
           Center(
               child: Text(
             AppLocalizations.of(context)?.audio ?? 'This is an audio file!',
-            style: TextStyle(fontSize: 24),
+            style: const TextStyle(fontSize: 24),
           )),
           Padding(
             padding: EdgeInsets.all(4),
@@ -49,8 +48,8 @@ class MusicPlayerState extends State<MusicPlayer> {
                         activeColor: Colors.black,
                         onChanged: (v) => setState(() {
                               progress = v;
-                              widget._controller.seekTo(Duration(
-                                  milliseconds: (v * widget._controller.value.duration.inMilliseconds).toInt()));
+                              widget._controller
+                                  .seekTo(Duration(milliseconds: (v * widget._controller.value.duration.inMilliseconds).toInt()));
                             })))
               ],
             ),
@@ -63,11 +62,11 @@ class MusicPlayerState extends State<MusicPlayer> {
     if (progress == 1) {
       progress = 0;
       widget._controller.pause();
-      widget._controller.seekTo(Duration(seconds: 0));
+      widget._controller.seekTo(const Duration(seconds: 0));
     }
     setState(() => progress =
         widget._controller.value.position.inMilliseconds.toDouble() / widget._controller.value.duration.inMilliseconds);
-    return Future.delayed(Duration(seconds: 1), setProgress);
+    return Future.delayed(const Duration(seconds: 1), setProgress);
   }
 
   @override

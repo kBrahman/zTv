@@ -26,7 +26,7 @@ class MyPlaylistsState extends State<MyPlaylists> {
 
   Future<List<Playlist>> myPlaylists() async {
     final List<Map<String, dynamic>> maps = await widget.db.query(TABLE_PLAYLIST);
-    return List.generate(maps.length, (i) => Playlist(maps[i]['name'], maps[i]['link']));
+    return List.generate(maps.length, (i) => Playlist(maps[i][COLUMN_TITLE], maps[i][COLUMN_LINK]));
   }
 
   @override

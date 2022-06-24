@@ -3,7 +3,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
@@ -66,7 +65,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   void initState() {
     _scrollController = ScrollController(initialScrollOffset: widget._offset);
     ctr = TextEditingController(text: widget._query);
-    log(TAG, 'has filter=>${widget.info.hasFilter}');
     super.initState();
   }
 
@@ -120,7 +118,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                         (lan, cat) => setState(() {
                               widget._filterLanguage = lan;
                               widget._filterCategory = cat;
-                              log(TAG, "submit lan=>$lan; cat=>$cat");
                             }), () {
                       widget._filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
                       widget._filterCategory = getLocalizedCategory(ANY_CATEGORY, context);
@@ -158,10 +155,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
 
   Future<List<Channel>> getChannels(link, xLink) {
     if (link is List<Channel>) {
-      log(TAG, 'link is list');
       for (var ch in link) {
         if (ch.isOff) {
-          log(TAG, 'ch=>$ch is off');
           link.remove(ch);
         } else {
           ch.filterLanguage = widget._filterLanguage;
@@ -274,7 +269,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   }
 
   Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) {
-    log(TAG, 'get filtered channels');
     return f.then((list) => list.where((element) {
           element.query = widget._query ?? '';
           return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
@@ -418,7 +412,7 @@ class SaveDialog extends StatelessWidget {
               savePlaylist(Playlist(name, playlistLink!));
               Navigator.of(context).pop();
             },
-            child: const Text('Save'))
+            child: const Text('OK'))
       ],
     );
   }
