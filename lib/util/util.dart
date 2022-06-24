@@ -140,7 +140,7 @@ const COLUMN_LINK = 'link';
 const COLUMN_LOGO = 'logo';
 const COLUMN_TIME = 'time';
 const COLUMN_ID = 'id';
-const CHANNEL_COUNT = "8000";
+const CHANNEL_COUNT = "6000";
 
 log(String tag, String? msg) => print('$tag:$msg');
 
