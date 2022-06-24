@@ -1,10 +1,10 @@
 {
   "link_val": "URL de la vidéo ou URL de la liste de lecture IPTV",
   "link": "Collez votre lien ici",
-  "no_inet": "Pas d&#39;accès Internet",
-  "audio": "C&#39;est un fichier audio !",
+  "no_inet": "Pas d'accès Internet",
+  "audio": "C'est un fichier audio!",
   "my_playlists": "Mes listes de lecture",
-  "ch_offline": "Cette chaîne est hors ligne maintenant. Viens plus tard s&#39;il te plait",
+  "ch_offline": "Cette chaîne est hors ligne maintenant. Viens plus tard s'il te plait",
   "broken_link": "Le lien est cassé!",
   "save_playlist": "Enregistrer la liste de lecture",
   "my_iptv": "MON IPTV",
@@ -145,7 +145,6 @@
   "ln": "Lingala",
   "mnk": "Mandingue",
   "mr": "Marathe",
-  "or": "Odia",
   "history": "Chaînes regardées",
   "playlist_link_broken": "Le lien de la liste de lecture est rompu. Impossible de le sauvegarder."
 }

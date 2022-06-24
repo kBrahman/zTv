@@ -11,5 +11,6 @@ const LOCALES = [
   Locale('fr', ''),
   Locale('hi', ''),
   Locale('id', ''),
-  Locale('it', '')
+  Locale('it', ''),
+  Locale('ru', '')
 ];

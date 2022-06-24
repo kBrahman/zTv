@@ -281,6 +281,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> checkSubs() async {
+    setState(() => purchase.product?.status = ProductStatus.pending);
     id = await signIn();
     if (id == null) {
       setState(() {
@@ -300,12 +301,10 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<String> signIn() async {
+  Future<String?> signIn() async {
     GoogleSignIn _googleSignIn = GoogleSignIn(scopes: <String>['email']);
-    final signedIn = await _googleSignIn.isSignedIn();
     id = _googleSignIn.currentUser?.email;
     if (id == null && (id = (await _googleSignIn.signInSilently())?.email) == null) id = (await _googleSignIn.signIn())?.email;
-
     return Future.value(id);
   }
 

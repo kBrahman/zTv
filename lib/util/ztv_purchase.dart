@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -72,14 +74,10 @@ class ZtvPurchases extends ChangeNotifier {
     }
     const ids = <String>{'ztv_channels'};
     final response = await iapConnection.queryProductDetails(ids);
-    response.notFoundIDs.forEach((element) {
-      print('Purchase $element not found');
-    });
+    for (final element in response.notFoundIDs) log(TAG, 'Purchase $element not found');
     final products = response.productDetails.map((e) => PurchasableProduct(e)).toList();
     storeState = StoreState.AVAILABLE;
-    log(TAG, 'product list is empty=>${products.isEmpty}');
     product = products.first;
-    log(TAG, product?.id);
   }
 
   buy(String id, onPurchased, onPurchaseError) {
