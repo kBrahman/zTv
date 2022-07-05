@@ -74,7 +74,7 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   static const TAG = '_HomePageState';
   static const YEAR_IN_SEC = 365 * 24 * 3600;
   static const HAS_IPTV = 'has_iptv';
@@ -88,7 +88,7 @@ class _HomePageState extends State<HomePage> {
   var _connectedToInet = true;
   var _filterLanguage = ANY_LANGUAGE;
   var _filterCategory = ANY_CATEGORY;
-  var uiState = UIState.MAIN;
+  var _uiState = UIState.MAIN;
   var _title = 'Player';
   final stateStack = [UIState.MAIN];
   List<String> _droDownLanguages = [];
@@ -98,15 +98,14 @@ class _HomePageState extends State<HomePage> {
   String? id;
   late Database db;
   String? _logo;
-  List<Widget>? myIPTVPlaylist;
   late VoidCallback _onChannelOff;
   final _myIPTVInfo = PlaylistInfo();
   final _info = PlaylistInfo();
+  var _scale = 1.0;
 
   @override
   void initState() {
     checkConnection();
-    hasIPTV();
     _initDB();
     super.initState();
   }
@@ -128,21 +127,23 @@ class _HomePageState extends State<HomePage> {
     log(TAG, 'play=>$_link');
     if (_connectedToInet && (_link.endsWith('=m3u') || _link.contains('download.php?id') || _link.endsWith('.m3u')))
       setState(() {
-        uiState = UIState.PLAYLIST;
+        _uiState = UIState.PLAYLIST;
         stateStack.add(UIState.PLAYLIST);
       });
     else if (_connectedToInet || isLocalFile(_link))
       setState(() {
         _title = '';
-        uiState = UIState.PLAYER;
+        _uiState = UIState.PLAYER;
         stateStack.add(UIState.PLAYER);
       });
-    else {
-      final snackBar =
-          SnackBar(content: Text(AppLocalizations.of(context)?.no_inet ?? 'No internet'), duration: const Duration(seconds: 1));
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
+    else
+      showSnack(AppLocalizations.of(context)?.no_inet ?? 'No internet');
     _txtFieldTxt = _link;
+  }
+
+  void showSnack(String s) {
+    final snackBar = SnackBar(content: Text(s), duration: const Duration(seconds: 1));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   @override
@@ -162,7 +163,7 @@ class _HomePageState extends State<HomePage> {
     _query = query;
     setState(() {
       _link = link;
-      uiState = UIState.PLAYER;
+      _uiState = UIState.PLAYER;
       stateStack.add(UIState.PLAYER);
     });
     log(TAG, 'on tap, data=>$data');
@@ -170,7 +171,7 @@ class _HomePageState extends State<HomePage> {
 
   void onPlaylistTap(link) => setState(() {
         _link = link;
-        uiState = UIState.PLAYLIST;
+        _uiState = UIState.PLAYLIST;
         stateStack.add(UIState.PLAYLIST);
       });
 
@@ -178,9 +179,11 @@ class _HomePageState extends State<HomePage> {
     _link = _dataHolder;
     stateStack.removeLast();
     if (stateStack.isEmpty) return Future.value(true);
+    final last = stateStack.last;
+    log(TAG, 'last=>$last');
     setState(() {
-      uiState = stateStack.last;
-      if (uiState != UIState.PLAYLIST && uiState != UIState.MY_IPTV) {
+      _uiState = last;
+      if (_uiState != UIState.PLAYLIST && _uiState != UIState.MY_IPTV) {
         _query = null;
         _offset = 0.0;
         _filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
@@ -200,7 +203,7 @@ class _HomePageState extends State<HomePage> {
   bool isLocalFile(String link) => link.endsWith('.flac') || link.endsWith('.mp4') || link.endsWith('.mp3');
 
   Widget getChild() {
-    switch (uiState) {
+    switch (_uiState) {
       case UIState.MAIN:
         return Scaffold(
           appBar: AppBar(
@@ -213,7 +216,7 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.white,
                   ),
                   onPressed: () => setState(() {
-                        uiState = UIState.MY_PLAYLISTS;
+                        _uiState = UIState.MY_PLAYLISTS;
                         stateStack.add(UIState.MY_PLAYLISTS);
                       })),
               IconButton(color: Colors.white, icon: const Icon(Icons.folder), onPressed: _browse)
@@ -231,14 +234,21 @@ class _HomePageState extends State<HomePage> {
                             : AppLocalizations.of(context)?.processing ?? 'Processing...',
                         style: const TextStyle(fontSize: 14))),
               if (_hasIPTV != null && purchase.product != null)
-                TextButton(
-                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
-                    onPressed: () => _hasIPTV! ? myIptv() : buyIptv(false),
-                    child: Text(
-                        _hasIPTV!
-                            ? AppLocalizations.of(context)?.my_iptv ?? 'MY IPTV'
-                            : AppLocalizations.of(context)?.buy_iptv ?? 'BUY IPTV',
-                        style: const TextStyle(color: Colors.white))),
+                Transform.scale(
+                    scale: _scale,
+                    child: TextButton(
+                        style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
+                        onPressed: () => _hasIPTV! ? myIPTV(false) : buyIptv(false),
+                        child: Text(
+                            _hasIPTV!
+                                ? AppLocalizations.of(context)?.my_iptv ?? 'MY IPTV'
+                                : AppLocalizations.of(context)?.buy_iptv ?? 'BUY IPTV',
+                            style: const TextStyle(color: Colors.white)))),
+              if (_hasIPTV == false)
+                GestureDetector(
+                    child: Text(AppLocalizations.of(context)?.try_iptv ?? 'TRY FREE',
+                        style: const TextStyle(color: Colors.red, fontSize: 12)),
+                    onTap: () => myIPTV(true)),
               Expanded(
                   child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -267,14 +277,14 @@ class _HomePageState extends State<HomePage> {
         );
       case UIState.PLAYLIST:
         return PlaylistWidget(_link, null, _onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _droDownLanguages, _dropDownCategories, true, db, null, _info);
+            _droDownLanguages, _dropDownCategories, true, db, _info);
       case UIState.PLAYER:
-        return Player(_link.trim(), _title, _logo, db, _onChannelOff);
+        return Player(_link.trim(), _title, _logo, db, _onChannelOff, _myIPTVInfo.isTrial, onMain);
       case UIState.MY_PLAYLISTS:
         return MyPlaylists(onPlaylistTap, db);
       case UIState.MY_IPTV:
         return PlaylistWidget(_link, _xLink, _onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _droDownLanguages, _dropDownCategories, false, db, (l) => myIPTVPlaylist = l, _myIPTVInfo);
+            _droDownLanguages, _dropDownCategories, false, db, _myIPTVInfo);
       case UIState.HISTORY:
         return HistoryWidget(db, _historyItemTap);
     }
@@ -282,10 +292,16 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> checkSubs() async {
     setState(() => purchase.product?.status = ProductStatus.pending);
-    id = await signIn();
+    try {
+      id = await _signIn();
+    } catch (e) {
+      showSnack('Could not sign in, try again please');
+      setState(() => purchase.product?.status = ProductStatus.purchasable);
+    }
     if (id == null) {
       setState(() {
         _hasIPTV = false;
+        purchase.product?.status = ProductStatus.purchasable;
       });
       return;
     }
@@ -301,9 +317,9 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<String?> signIn() async {
+  Future<String?> _signIn() async {
     GoogleSignIn _googleSignIn = GoogleSignIn(scopes: <String>['email']);
-    id = _googleSignIn.currentUser?.email;
+    var id = _googleSignIn.currentUser?.email;
     if (id == null && (id = (await _googleSignIn.signInSilently())?.email) == null) id = (await _googleSignIn.signIn())?.email;
     return Future.value(id);
   }
@@ -325,14 +341,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  myIptv() {
-    if (myIPTVPlaylist != null)
-      _link = myIPTVPlaylist;
+  myIPTV(bool isTrial) {
+    _myIPTVInfo.isTrial = isTrial;
+    if (_myIPTVInfo.myIPTVPlaylist != null)
+      _link = _myIPTVInfo.myIPTVPlaylist;
     else {
       _link = widget.playlist;
       _xLink = widget.xList;
     }
-    setState(() => uiState = UIState.MY_IPTV);
+    setState(() => _uiState = UIState.MY_IPTV);
     stateStack.add(UIState.MY_IPTV);
   }
 
@@ -353,7 +370,7 @@ class _HomePageState extends State<HomePage> {
       _connectedToInet = connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
 
   void _history() => setState(() {
-        uiState = UIState.HISTORY;
+        _uiState = UIState.HISTORY;
         stateStack.add(UIState.HISTORY);
       });
 
@@ -373,10 +390,21 @@ class _HomePageState extends State<HomePage> {
       _title = title;
       _link = link;
       _logo = _logo;
-      uiState = UIState.PLAYER;
-      stateStack.add(uiState);
+      _uiState = UIState.PLAYER;
+      stateStack.add(_uiState);
     });
   }
+
+  void onMain() {
+    setState(() => _uiState = UIState.MAIN);
+    animate(0);
+  }
+
+  void animate(count) => Future.delayed(const Duration(milliseconds: 250), () {
+        if (count == 4) return;
+        setState(() => _scale = _scale == 1.0 ? 1.3 : 1.0);
+        animate(count + 1);
+      });
 }
 
 enum UIState { MAIN, PLAYLIST, PLAYER, MY_PLAYLISTS, MY_IPTV, HISTORY }

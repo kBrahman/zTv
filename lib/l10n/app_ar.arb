@@ -8,6 +8,7 @@
   "broken_link": "الارتباط معطل!",
   "save_playlist": "حفظ قائمة التشغيل",
   "my_iptv": "IPTV الخاص بي",
+  "try_iptv": "حاول مجانا",
   "buy_iptv": "شراء IPTV",
   "get_iptv_txt": "احصل على وصول إلى {channel_count} + قنوات مقابل {price} في السنة",
   "@get_iptv_txt": {
@@ -148,5 +149,4 @@
   "or": "لغة الأودية",
   "history": "القنوات التي شاهدتها",
   "playlist_link_broken": "رابط قائمة التشغيل معطل. لا يمكن حفظه."
-
 }

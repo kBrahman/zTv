@@ -26,27 +26,13 @@ class PlaylistWidget extends StatefulWidget {
   final String? _playlistLink;
   final List<String> _dropDownLanguages;
   final List<String> _dropDownCategories;
-  bool hasSavePlayList;
+  final bool hasSavePlayList;
   final String? _xLink;
   final Database db;
-  final Function(List<Channel> list)? onLoaded;
   final PlaylistInfo info;
 
-  PlaylistWidget(
-      this._linkOrList,
-      this._xLink,
-      this.onTap,
-      this._offset,
-      this._query,
-      this._filterLanguage,
-      this._filterCategory,
-      this._playlistLink,
-      this._dropDownLanguages,
-      this._dropDownCategories,
-      this.hasSavePlayList,
-      this.db,
-      this.onLoaded,
-      this.info,
+  PlaylistWidget(this._linkOrList, this._xLink, this.onTap, this._offset, this._query, this._filterLanguage, this._filterCategory,
+      this._playlistLink, this._dropDownLanguages, this._dropDownCategories, this.hasSavePlayList, this.db, this.info,
       {Key? key})
       : super(key: key);
 
@@ -264,7 +250,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     widget._filterLanguage = getLocalizedLanguage(widget._filterLanguage, context);
     setState(() => widget.info.hasFilter = (widget._dropDownCategories.length > 1 || widget._dropDownLanguages.length > 1));
     widget._linkOrList = list;
-    if (!widget.hasSavePlayList) widget.onLoaded?.call(list);
+    if (!widget.hasSavePlayList) widget.info.myIPTVPlaylist = list;
     return Future.value(list);
   }
 

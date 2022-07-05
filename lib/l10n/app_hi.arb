@@ -8,6 +8,7 @@
   "broken_link": "लिंक टूटा हुआ है!",
   "save_playlist": "प्लेलिस्ट सेव करें",
   "my_iptv": "मेरा आईपीटीवी",
+  "try_iptv": "मुफ्त कोशिश",
   "buy_iptv": "आईपीटीवी खरीदें",
   "get_iptv_txt": "प्रति वर्ष {price} के लिए {channel_count}+ चैनल तक पहुंच प्राप्त करें",
   "@get_iptv_txt": {

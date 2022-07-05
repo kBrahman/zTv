@@ -1,5 +1,6 @@
 // ignore_for_file: constant_identifier_names, curly_braces_in_flow_control_structures
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -20,13 +21,17 @@ class Player extends StatefulWidget {
   final Database db;
   final String? _logo;
   final VoidCallback onChannelOff;
+  final bool isTrial;
+  final VoidCallback onMain;
 
   const Player(
     this._link,
     this._title,
     this._logo,
     this.db,
-    this.onChannelOff, {
+    this.onChannelOff,
+    this.isTrial,
+    this.onMain, {
     Key? key,
   }) : super(key: key);
 
@@ -178,13 +183,15 @@ class _PlayerState extends State<Player> {
                         initAndSetDelegate(widget._link);
                         return pb();
                       } else if (hasError) return const WidgetChOff();
-                      if (!paused) _controller.play();
+                      if (!paused) {
+                        _controller.play();
+                        if (widget.isTrial) startDemoTimer();
+                      }
                       if (!inserted)
                         widget.db.insert('history', {'title': widget._title, 'link': widget._link, 'logo': widget._logo},
                             conflictAlgorithm: ConflictAlgorithm.abort);
                       inserted = true;
                       final size = _controller.value.size;
-
                       return isAudioFile
                           ? MusicPlayer(_controller)
                           : Stack(
@@ -225,6 +232,7 @@ class _PlayerState extends State<Player> {
   }
 
   void off() {
+    if (!mounted) return;
     setState(() => chOff = true);
     widget.onChannelOff();
   }
@@ -243,13 +251,18 @@ class _PlayerState extends State<Player> {
   void repeatedCheck(VlcPlayerController ctr) {
     Future.delayed(const Duration(seconds: 1), ctr.isPlaying).then((isPlaying) {
       if (isPlaying = true)
-        Future.delayed(const Duration(seconds: 2), () => setState(() => this.isPlaying = true));
+        Future.delayed(const Duration(seconds: 2), () {
+          setState(() => this.isPlaying = true);
+          startDemoTimer();
+        });
       else
         repeatedCheck(ctr);
     });
   }
 
   void initAndSetDelegate(url) => Future.microtask(() => initVLC(url)).then((value) => setState(() => delegateToVLC = true));
+
+  void startDemoTimer() => Future.delayed(const Duration(seconds: 3), widget.onMain);
 }
 
 class WidgetChOff extends StatelessWidget {

@@ -8,6 +8,7 @@
   "broken_link": "¡El enlace está roto!",
   "save_playlist": "Guardar lista de reproducción",
   "my_iptv": "MI IPTV",
+  "try_iptv": "PROBAR GRATIS",
   "buy_iptv": "COMPRAR IPTV",
   "get_iptv_txt": "Obtén acceso a {channel_count}+ canales por {price} al año",
   "@get_iptv_txt": {

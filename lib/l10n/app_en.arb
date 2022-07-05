@@ -8,6 +8,7 @@
   "broken_link": "Link is broken!",
   "save_playlist": "Save playlist",
   "my_iptv": "MY IPTV",
+  "try_iptv": "TRY FREE",
   "buy_iptv": "BUY IPTV",
   "get_iptv_txt": "Get access to {channel_count}+ channels for {price} per year",
   "@get_iptv_txt": {

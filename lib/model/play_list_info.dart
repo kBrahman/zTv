@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
+
 class PlaylistInfo {
   var hasFilter = false;
-
-  PlaylistInfo();
+  List<Widget>? myIPTVPlaylist;
+  bool isTrial = false;
 }

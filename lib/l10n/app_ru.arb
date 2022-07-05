@@ -8,6 +8,7 @@
   "broken_link": "Ссылка не работает!",
   "save_playlist": "Сохранить плейлист",
   "my_iptv": "МОЕ IPTV",
+  "try_iptv": "ПОПРОБОВАТЬ",
   "buy_iptv": "КУПИТЬ IPTV",
   "get_iptv_txt": "Получите доступ к {channel_count}+ каналам за {price} в год",
   "@get_iptv_txt": {
