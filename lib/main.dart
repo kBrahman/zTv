@@ -86,7 +86,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   var _txtFieldTxt;
   var _query;
   var _connectedToInet = true;
-  var _filterLanguage = ANY_LANGUAGE;
   var _filterCategory = ANY_CATEGORY;
   var _uiState = UIState.MAIN;
   var _title = 'Player';
@@ -100,7 +99,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   String? _logo;
   late VoidCallback _onChannelOff;
   final _myIPTVInfo = PlaylistInfo();
-  final _info = PlaylistInfo();
+  final _playListInfo = PlaylistInfo();
   var _scale = 1.0;
 
   @override
@@ -137,12 +136,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         stateStack.add(UIState.PLAYER);
       });
     else
-      showSnack(AppLocalizations.of(context)?.no_inet ?? 'No internet');
+      showSnack(AppLocalizations.of(context)?.no_inet ?? 'No internet',2);
     _txtFieldTxt = _link;
   }
 
-  void showSnack(String s) {
-    final snackBar = SnackBar(content: Text(s), duration: const Duration(seconds: 1));
+  void showSnack(String s, dur) {
+    final snackBar = SnackBar(content: Text(s), duration: Duration(seconds: dur));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
@@ -152,7 +151,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void _onTap(link, List<Widget> data, double offset, String query, filterLanguage, filterCategory, title, logo, filterLanguages,
       categories, hasFilter, onChannelOff) {
     _onChannelOff = onChannelOff;
-    _filterLanguage = filterLanguage;
+    info.filterLanguage = filterLanguage;
     _filterCategory = filterCategory;
     _title = title;
     _droDownLanguages = filterLanguages;
@@ -168,6 +167,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     });
     log(TAG, 'on tap, data=>$data');
   }
+
+  get info => stateStack.last == UIState.PLAYLIST ? _playListInfo : _myIPTVInfo;
 
   void onPlaylistTap(link) => setState(() {
         _link = link;
@@ -186,7 +187,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       if (_uiState != UIState.PLAYLIST && _uiState != UIState.MY_IPTV) {
         _query = null;
         _offset = 0.0;
-        _filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
+        info.filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
         _filterCategory = getLocalizedCategory(ANY_CATEGORY, context);
         _logo = null;
       }
@@ -276,15 +277,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
         );
       case UIState.PLAYLIST:
-        return PlaylistWidget(_link, null, _onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _droDownLanguages, _dropDownCategories, true, db, _info);
+        return PlaylistWidget(_link, null, _onTap, _offset, _query, _filterCategory, _txtFieldTxt, _droDownLanguages,
+            _dropDownCategories, true, db, _playListInfo);
       case UIState.PLAYER:
         return Player(_link.trim(), _title, _logo, db, _onChannelOff, _myIPTVInfo.isTrial, onMain);
       case UIState.MY_PLAYLISTS:
         return MyPlaylists(onPlaylistTap, db);
       case UIState.MY_IPTV:
-        return PlaylistWidget(_link, _xLink, _onTap, _offset, _query, _filterLanguage, _filterCategory, _txtFieldTxt,
-            _droDownLanguages, _dropDownCategories, false, db, _myIPTVInfo);
+        return PlaylistWidget(_link, _xLink, _onTap, _offset, _query, _filterCategory, _txtFieldTxt, _droDownLanguages,
+            _dropDownCategories, false, db, _myIPTVInfo);
       case UIState.HISTORY:
         return HistoryWidget(db, _historyItemTap);
     }
@@ -295,7 +296,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     try {
       id = await _signIn();
     } catch (e) {
-      showSnack('Could not sign in, try again please');
+      showSnack('Could not sign in, try again please',2);
       setState(() => purchase.product?.status = ProductStatus.purchasable);
     }
     if (id == null) {
@@ -305,7 +306,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       });
       return;
     }
-    await Firebase.initializeApp();
+    try {
+      await Firebase.initializeApp();
+    } catch (e) {
+      showSnack(AppLocalizations?.of(context)?.conn_err ?? "Connection error, try again please",2);
+      setState(() => purchase.product?.status = ProductStatus.purchasable);
+      log(TAG, 'e=>$e');
+      return;
+    }
     var doc = FirebaseFirestore.instance.doc('user/$id');
     doc.get().then((value) {
       var exists = value.exists;
@@ -325,10 +333,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   buyIptv(bool afterCheckSubs) async {
-    if (id == null && !afterCheckSubs) {
+    if (!afterCheckSubs)
       await checkSubs();
-    } else if (id == null && afterCheckSubs)
-      return;
     else {
       purchase.buy(
           id!,

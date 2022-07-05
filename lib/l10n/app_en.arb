@@ -147,6 +147,8 @@
   "mnk": "Mandinka",
   "mr": "Marathi",
   "or": "Odia",
+  "as": "Assamese",
   "history": "History",
-  "playlist_link_broken": "Playlist link is broken. Can't save it."
+  "playlist_link_broken": "Playlist link is broken. Can't save it.",
+  "conn_err": "Connection error, try again please"
 }

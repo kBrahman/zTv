@@ -21,7 +21,6 @@ class PlaylistWidget extends StatefulWidget {
   final double _offset;
 
   String? _query;
-  String _filterLanguage;
   String _filterCategory;
   final String? _playlistLink;
   final List<String> _dropDownLanguages;
@@ -29,10 +28,10 @@ class PlaylistWidget extends StatefulWidget {
   final bool hasSavePlayList;
   final String? _xLink;
   final Database db;
-  final PlaylistInfo info;
+  final PlaylistInfo _info;
 
-  PlaylistWidget(this._linkOrList, this._xLink, this.onTap, this._offset, this._query, this._filterLanguage, this._filterCategory,
-      this._playlistLink, this._dropDownLanguages, this._dropDownCategories, this.hasSavePlayList, this.db, this.info,
+  PlaylistWidget(this._linkOrList, this._xLink, this.onTap, this._offset, this._query, this._filterCategory, this._playlistLink,
+      this._dropDownLanguages, this._dropDownCategories, this.hasSavePlayList, this.db, this._info,
       {Key? key})
       : super(key: key);
 
@@ -96,16 +95,16 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
                   color: Colors.white,
                 ),
                 onPressed: () => setState(() => showSearchView = true)),
-        widget.info.hasFilter
+        widget._info.hasFilter
             ? IconButton(
                 icon: const Icon(Icons.filter_list, color: Colors.white),
                 onPressed: () => dialog(
                         context,
                         (lan, cat) => setState(() {
-                              widget._filterLanguage = lan;
+                              widget._info.filterLanguage = lan;
                               widget._filterCategory = cat;
                             }), () {
-                      widget._filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
+                      widget._info.filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
                       widget._filterCategory = getLocalizedCategory(ANY_CATEGORY, context);
                     }))
             : const SizedBox.shrink(),
@@ -116,7 +115,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
       ]),
       body: FutureBuilder(
         future: (widget._query == null || widget._query?.isEmpty == true) &&
-                (widget._filterLanguage == getLocalizedLanguage(ANY_LANGUAGE, context)) &&
+                (widget._info.filterLanguage == getLocalizedLanguage(ANY_LANGUAGE, context)) &&
                 (widget._filterCategory == getLocalizedCategory(ANY_CATEGORY, context))
             ? getChannels(widget._linkOrList, widget._xLink)
             : getFilteredChannels(getChannels(widget._linkOrList, widget._xLink), widget._query ?? ''),
@@ -145,7 +144,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         if (ch.isOff) {
           link.remove(ch);
         } else {
-          ch.filterLanguage = widget._filterLanguage;
+          ch.filterLanguage = widget._info.filterLanguage;
           ch.filterCategory = widget._filterCategory;
           ch.sc = _scrollController;
         }
@@ -194,7 +193,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
             title,
             link,
             (offset, query, language, category, logo, ch) => widget.onTap(link, list, offset, query, language, category, title,
-                logo, widget._dropDownLanguages, widget._dropDownCategories, widget.info.hasFilter, () => list.remove(ch)));
+                logo, widget._dropDownLanguages, widget._dropDownCategories, widget._info.hasFilter, () => list.remove(ch)));
         channel.sc = _scrollController;
         if (category != null) channel.categories.add(getLocalizedCategory(category, context));
         if (title.contains(RegExp('FRANCE|\\|FR\\|'))) {
@@ -247,10 +246,10 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     widget._dropDownLanguages.sort();
     widget._dropDownLanguages.insert(0, getLocalizedLanguage(ANY_LANGUAGE, context));
     widget._filterCategory = getLocalizedCategory(widget._filterCategory, context);
-    widget._filterLanguage = getLocalizedLanguage(widget._filterLanguage, context);
-    setState(() => widget.info.hasFilter = (widget._dropDownCategories.length > 1 || widget._dropDownLanguages.length > 1));
+    widget._info.filterLanguage = getLocalizedLanguage(widget._info.filterLanguage, context);
+    setState(() => widget._info.hasFilter = (widget._dropDownCategories.length > 1 || widget._dropDownLanguages.length > 1));
     widget._linkOrList = list;
-    if (!widget.hasSavePlayList) widget.info.myIPTVPlaylist = list;
+    if (!widget.hasSavePlayList) widget._info.myIPTVPlaylist = list;
     return Future.value(list);
   }
 
@@ -258,8 +257,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     return f.then((list) => list.where((element) {
           element.query = widget._query ?? '';
           return ((q.isEmpty) ? true : element.title.toLowerCase().contains(q.toLowerCase())) &&
-              (widget._filterLanguage != getLocalizedLanguage(ANY_LANGUAGE, context)
-                  ? element.languages.contains(widget._filterLanguage)
+              (widget._info.filterLanguage != getLocalizedLanguage(ANY_LANGUAGE, context)
+                  ? element.languages.contains(widget._info.filterLanguage)
                   : true) &&
               (widget._filterCategory != getLocalizedCategory(ANY_CATEGORY, context)
                   ? element.categories.contains(widget._filterCategory)
@@ -269,8 +268,8 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
 
   void dialog(ctx, submit, clear) => showDialog(
       context: ctx,
-      builder: (_) => ZtvDialog(
-          submit, clear, widget._filterLanguage, widget._filterCategory, widget._dropDownLanguages, widget._dropDownCategories));
+      builder: (_) => ZtvDialog(submit, clear, widget._info.filterLanguage, widget._filterCategory, widget._dropDownLanguages,
+          widget._dropDownCategories));
 
   setChannelProperties(String s, Channel channel) {
     s = s.replaceAll('#EXTINF:-1 ', '');

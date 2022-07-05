@@ -98,6 +98,7 @@ const LINGALA = 'Lingala';
 const MANDINKA = 'Mandinka';
 const MARATHI = 'Marathi';
 const ODIA = 'Odia';
+const ASSAMESE = 'Assamese';
 //categories
 const ANY_CATEGORY = 'Any category';
 const WEATHER = 'Weather';
@@ -330,6 +331,8 @@ String getLocalizedLanguage(String? s, BuildContext context) {
       return of?.mnk ?? s!;
     case MARATHI:
       return of?.mr ?? s!;
+    case ASSAMESE:
+      return of?.as ?? s!;
     default:
       return s!;
   }

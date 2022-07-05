@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
 
+import '../util/util.dart';
+
 class PlaylistInfo {
   var hasFilter = false;
   List<Widget>? myIPTVPlaylist;
-  bool isTrial = false;
+  var isTrial = false;
+  var filterLanguage = ANY_LANGUAGE;
 }

@@ -142,6 +142,8 @@
   "ln": "Lingala",
   "mnk": "Mandinka",
   "mr": "Marathi",
+  "as": "Assam",
   "history": "Saluran yang ditonton",
-  "playlist_link_broken": "Pautan senarai main rosak. Tidak boleh menyimpannya."
+  "playlist_link_broken": "Pautan senarai main rosak. Tidak boleh menyimpannya.",
+  "conn_err": "Ralat sambungan, sila cuba lagi"
 }

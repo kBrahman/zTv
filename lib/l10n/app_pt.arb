@@ -128,6 +128,8 @@
   "ky": "Quirguistão",
   "ln": "Lingala",
   "mnk": "Mandinga",
+  "as": "Assamês",
   "history": "História",
-  "playlist_link_broken": "O link da lista de reprodução está quebrado. Não é possível salvá-lo."
+  "playlist_link_broken": "O link da lista de reprodução está quebrado. Não é possível salvá-lo.",
+  "conn_err": "Erro de conexão, tente novamente por favor"
 }

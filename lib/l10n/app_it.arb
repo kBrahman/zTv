@@ -141,5 +141,6 @@
   "kl": "Groenlandese",
   "ky": "Kirghizistan",
   "history": "Canali guardati",
-  "playlist_link_broken": "Il collegamento della playlist è interrotto. Impossibile salvarlo."
+  "playlist_link_broken": "Il collegamento della playlist è interrotto. Impossibile salvarlo.",
+  "conn_err": "Errore di connessione, riprova per favore"
 }

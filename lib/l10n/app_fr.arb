@@ -146,6 +146,8 @@
   "ln": "Lingala",
   "mnk": "Mandingue",
   "mr": "Marathe",
+  "as": "Assamais",
   "history": "Chaînes regardées",
-  "playlist_link_broken": "Le lien de la liste de lecture est rompu. Impossible de le sauvegarder."
+  "playlist_link_broken": "Le lien de la liste de lecture est rompu. Impossible de le sauvegarder.",
+  "conn_err": "Erreur de connexion, réessayez s'il vous plaît"
 }
