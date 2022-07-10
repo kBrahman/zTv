@@ -253,7 +253,7 @@ class _PlayerState extends State<Player> {
       if (isPlaying = true)
         Future.delayed(const Duration(seconds: 2), () {
           setState(() => this.isPlaying = true);
-          startDemoTimer();
+          if (widget.isTrial) startDemoTimer();
         });
       else
         repeatedCheck(ctr);
