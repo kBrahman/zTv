@@ -136,7 +136,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         stateStack.add(UIState.PLAYER);
       });
     else
-      showSnack(AppLocalizations.of(context)?.no_inet ?? 'No internet',2);
+      showSnack(AppLocalizations.of(context)?.no_inet ?? 'No internet', 2);
     _txtFieldTxt = _link;
   }
 
@@ -251,23 +251,23 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         style: const TextStyle(color: Colors.red, fontSize: 12)),
                     onTap: () => myIPTV(true)),
               Expanded(
-                  child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    AppLocalizations.of(context)?.link ?? 'Paste your link here',
-                    style: Theme.of(context).textTheme.headline5,
-                  ),
-                  Padding(
+                  child: Padding(
                       padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-                      child: TextField(
-                        onChanged: (String txt) => _link = txt,
-                        decoration:
-                            InputDecoration(hintText: AppLocalizations.of(context)?.link_val ?? 'Video URL or IPTV playlist URL'),
-                        controller: TextEditingController(text: _txtFieldTxt),
-                      )),
-                ],
-              ))
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)?.link ?? 'Paste your link here',
+                            style: Theme.of(context).textTheme.headline5,
+                          ),
+                          TextField(
+                            onChanged: (String txt) => _link = txt,
+                            decoration: InputDecoration(
+                                hintText: AppLocalizations.of(context)?.link_val ?? 'Video URL or IPTV playlist URL'),
+                            controller: TextEditingController(text: _txtFieldTxt),
+                          ),
+                        ],
+                      )))
             ],
           ),
           floatingActionButton: FloatingActionButton(
@@ -296,7 +296,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     try {
       id = await _signIn();
     } catch (e) {
-      showSnack('Could not sign in, try again please',2);
+      showSnack('Could not sign in, try again please', 2);
       setState(() => purchase.product?.status = ProductStatus.purchasable);
     }
     if (id == null) {
@@ -309,7 +309,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     try {
       await Firebase.initializeApp();
     } catch (e) {
-      showSnack(AppLocalizations?.of(context)?.conn_err ?? "Connection error, try again please",2);
+      showSnack(AppLocalizations?.of(context)?.conn_err ?? "Connection error, try again please", 2);
       setState(() => purchase.product?.status = ProductStatus.purchasable);
       log(TAG, 'e=>$e');
       return;
