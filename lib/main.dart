@@ -97,7 +97,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   String? id;
   late Database db;
   String? _logo;
-  late VoidCallback _onChannelOff;
+  VoidCallback? _onChannelOff;
   final _myIPTVInfo = PlaylistInfo();
   final _playListInfo = PlaylistInfo();
   var _scale = 1.0;

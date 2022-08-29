@@ -16,7 +16,7 @@ import 'channel.dart';
 class PlaylistWidget extends StatefulWidget {
   dynamic _linkOrList;
 
-  final Function onTap;
+  final Function _onTap;
 
   final double _offset;
 
@@ -30,7 +30,7 @@ class PlaylistWidget extends StatefulWidget {
   final Database db;
   final PlaylistInfo _info;
 
-  PlaylistWidget(this._linkOrList, this._xLink, this.onTap, this._offset, this._query, this._filterCategory, this._playlistLink,
+  PlaylistWidget(this._linkOrList, this._xLink, this._onTap, this._offset, this._query, this._filterCategory, this._playlistLink,
       this._dropDownLanguages, this._dropDownCategories, this.hasSavePlayList, this.db, this._info,
       {Key? key})
       : super(key: key);
@@ -181,8 +181,10 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         final split = line.split(',');
         var title = split.last.replaceAll('====', '');
         String link = lines[++i];
-        var endsWith = link.trim().endsWith('.png');
-        if (endsWith) continue;
+        final endsWith = link.trim().endsWith('.png');
+        if (endsWith ||
+            link == 'https://d15690s323oesy.cloudfront.net/v1/master/9d062541f2ff39b5c0f48b743c6411d25f62fc25/UDU-Plex/158.m3u8')
+          continue;
         String? category;
         if (link.startsWith('#EXTGRP')) {
           category = link.split(':')[1];
@@ -192,7 +194,7 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         final channel = Channel(
             title,
             link,
-            (offset, query, language, category, logo, ch) => widget.onTap(link, list, offset, query, language, category, title,
+            (offset, query, language, category, logo, ch) => widget._onTap(link, list, offset, query, language, category, title,
                 logo, widget._dropDownLanguages, widget._dropDownCategories, widget._info.hasFilter, () => list.remove(ch)));
         channel.sc = _scrollController;
         if (category != null) channel.categories.add(getLocalizedCategory(category, context));

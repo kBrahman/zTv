@@ -35,7 +35,7 @@ android {
             keyPassword keystoreProperties['keyPassword']
         }
     }
-    compileSdkVersion 32
+    compileSdkVersion 33
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -45,7 +45,7 @@ android {
     defaultConfig {
         applicationId id
         minSdkVersion 20
-        targetSdkVersion 32
+        targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true

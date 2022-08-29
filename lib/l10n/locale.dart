@@ -15,5 +15,6 @@ const LOCALES = [
   Locale('ru', ''),
   Locale('ko', ''),
   Locale('sq', ''),
-  Locale('ta', '')
+  Locale('ta', ''),
+  Locale('uk', '')
 ];

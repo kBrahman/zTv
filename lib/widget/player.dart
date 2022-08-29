@@ -20,7 +20,7 @@ class Player extends StatefulWidget {
   final String _title;
   final Database db;
   final String? _logo;
-  final VoidCallback onChannelOff;
+  final VoidCallback? _onChannelOff;
   final bool isTrial;
   final VoidCallback onMain;
 
@@ -29,7 +29,7 @@ class Player extends StatefulWidget {
     this._title,
     this._logo,
     this.db,
-    this.onChannelOff,
+    this._onChannelOff,
     this.isTrial,
     this.onMain, {
     Key? key,
@@ -44,7 +44,7 @@ class _PlayerState extends State<Player> {
   late dynamic _controller;
   Future<void>? _initializeVideoPlayerFuture;
   bool fullscreen = false;
-  bool delegateToVLC = false;
+  bool _delegateToVLC = false;
   bool isPlaying = false;
   var controlVisible = false;
   bool paused = false;
@@ -56,10 +56,13 @@ class _PlayerState extends State<Player> {
   @override
   void initState() {
     var dataSource = widget._link;
-    if (dataSource.startsWith('https://59c5c86e10038.streamlock.net'))
+    log(TAG, 'ds=>$dataSource');
+    if (dataSource.startsWith('https://59c5c86e10038.streamlock.net')) {
       dataSource = dataSource.replaceFirst('59c5c86e10038.streamlock.net', 'panel.dattalive.com');
-    delegateToVLC = delegate(dataSource);
-    if (delegateToVLC)
+      log(TAG, 'startsWith, ds now=>$dataSource');
+    }
+    _delegateToVLC = delegate(dataSource);
+    if (_delegateToVLC)
       initVLC(dataSource);
     else {
       _controller = VideoPlayerController.network(dataSource);
@@ -70,8 +73,11 @@ class _PlayerState extends State<Player> {
 
   void initVLC(String url) {
     log(TAG, 'init vlc');
-    _controller = VlcPlayerController.network(url, autoPlay: true, options: VlcPlayerOptions())
-      ..addOnInitListener(() => repeatedCheck(_controller));
+    _controller = VlcPlayerController.network(url, autoPlay: true)
+      ..addOnInitListener(() {
+        log(TAG, 'on init callback, is playing=>${_controller.value}');
+        repeatedCheck(_controller);
+      });
   }
 
   getUrl(dataSource) => dataSource is Channel ? dataSource.url : dataSource;
@@ -117,7 +123,7 @@ class _PlayerState extends State<Player> {
             ),
       body: chOff
           ? const WidgetChOff()
-          : delegateToVLC
+          : _delegateToVLC
               ? Stack(children: [
                   Align(
                       child: GestureDetector(
@@ -142,7 +148,7 @@ class _PlayerState extends State<Player> {
                                         });
                                       }))
                           ]),
-                          onTap: onScreenTap),
+                          onTap: _onScreenTap),
                       alignment: Alignment.topCenter),
                   if (fullscreen) miniMaxWidget,
                   if (!isPlaying) pb()
@@ -153,24 +159,25 @@ class _PlayerState extends State<Player> {
                     if (snapshot.connectionState == ConnectionState.done) {
                       final err = snapshot.error;
                       var hasError = snapshot.hasError;
-                      final trace = snapshot.stackTrace;
                       if (hasError && err is PlatformException && err.message?.contains('Source error') == true) {
                         http.Request req = http.Request("Get", Uri.parse(_controller.dataSource))..followRedirects = false;
                         http.Client baseClient = http.Client();
                         baseClient.send(req).then((resp) {
-                          var loc = resp.headers['location'];
+                          final loc = resp.headers['location'];
+                          log(TAG, 'loc=>$loc');
                           if (loc != null)
                             setState(() {
                               _controller = VideoPlayerController.network(loc);
                               _initializeVideoPlayerFuture = _controller.initialize();
                             });
-                          else if (resp.statusCode == 403)
-                            off();
+                          else if (resp.statusCode == 403 || resp.statusCode == 404)
+                            _off();
                           else
                             initAndSetDelegate(widget._link);
                         }, onError: (e, s) {
+                          log(TAG, 'on err, e=>$e, s=>$s');
                           if (e is SocketException)
-                            off();
+                            _off();
                           else {
                             initAndSetDelegate(widget._link);
                           }
@@ -217,7 +224,7 @@ class _PlayerState extends State<Player> {
                                                         });
                                                       }))
                                           ]),
-                                          onTap: onScreenTap)),
+                                          onTap: _onScreenTap)),
                                   alignment: Alignment.topCenter,
                                 ),
                                 if (fullscreen) miniMaxWidget,
@@ -231,13 +238,13 @@ class _PlayerState extends State<Player> {
     );
   }
 
-  void off() {
+  void _off() {
     if (!mounted) return;
     setState(() => chOff = true);
-    widget.onChannelOff();
+    widget._onChannelOff?.call();
   }
 
-  void onScreenTap() {
+  void _onScreenTap() {
     setState(() => controlVisible = true);
     Future.delayed(const Duration(seconds: 2), () => setState(() => controlVisible = false));
   }
@@ -250,6 +257,7 @@ class _PlayerState extends State<Player> {
 
   void repeatedCheck(VlcPlayerController ctr) {
     Future.delayed(const Duration(seconds: 1), ctr.isPlaying).then((isPlaying) {
+      log(TAG, 'is playing=>$isPlaying');
       if (isPlaying = true)
         Future.delayed(const Duration(seconds: 2), () {
           setState(() => this.isPlaying = true);
@@ -260,7 +268,7 @@ class _PlayerState extends State<Player> {
     });
   }
 
-  void initAndSetDelegate(url) => Future.microtask(() => initVLC(url)).then((value) => setState(() => delegateToVLC = true));
+  void initAndSetDelegate(url) => Future.microtask(() => initVLC(url)).then((value) => setState(() => _delegateToVLC = true));
 
   void startDemoTimer() => Future.delayed(const Duration(seconds: 3), widget.onMain);
 }
