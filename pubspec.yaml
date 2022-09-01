@@ -1,7 +1,7 @@
 name: ztv
 description: IPTV
 publish_to: 'none'
-version: 2.1.8+33
+version: 2.1.9+34
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -10,16 +10,16 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_launcher_icons: ^0.9.0
-  http: ^0.13.3
+  http: ^0.13.5
   video_player: ^2.4.7
-  file_picker: ^4.5.1
+  file_picker: ^5.0.1
   connectivity: ^3.0.3
   cupertino_icons: ^1.0.2
   sqflite: ^2.0.2+1
   path: ^1.8.0
   flutter_vlc_player: ^7.1.5
   in_app_purchase: ^3.0.7
-  cloud_firestore: ^3.2.1
+  cloud_firestore: ^3.4.6
   google_sign_in: ^5.4.1
   shared_preferences: ^2.0.6
   flutter_localizations:

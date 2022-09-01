@@ -3,6 +3,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+const TAG = 'TOP';
 const UNDEFINED = 'Undefined';
 
 const TURKMEN = 'Turkmen';
@@ -145,8 +146,7 @@ const CHANNEL_COUNT = "6000";
 
 log(String tag, String? msg) => print('$tag:$msg');
 
-String getLocalizedLanguage(String? s, BuildContext context) {
-  var of = AppLocalizations.of(context);
+String getLocalizedLanguage(String? s, AppLocalizations? of) {
   switch (s) {
     case null:
     case ANY_LANGUAGE:
@@ -338,8 +338,7 @@ String getLocalizedLanguage(String? s, BuildContext context) {
   }
 }
 
-String getLocalizedCategory(String? s, BuildContext context) {
-  var of = AppLocalizations.of(context);
+String getLocalizedCategory(String? s, AppLocalizations? of) {
   switch (s) {
     case null:
     case ANY_CATEGORY:

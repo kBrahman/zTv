@@ -3,8 +3,9 @@
     <base-config cleartextTrafficPermitted="true" />
     <domain-config>
         <domain includeSubdomains="true">panel.dattalive.com</domain>
+        <domain includeSubdomains="true">privilegeapps.com</domain>
         <trust-anchors>
-            <certificates src="@raw/cert"/>
+<!--            <certificates src="@raw/certificates" />-->
         </trust-anchors>
     </domain-config>
 </network-security-config>

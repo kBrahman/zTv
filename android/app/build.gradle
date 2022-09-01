@@ -25,7 +25,6 @@ keystoreProperties.load(rootProject.file("keystore.properties").newDataInputStre
 def id = localProperties.getProperty("id")
 apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
-
 android {
     signingConfigs {
         devtok {

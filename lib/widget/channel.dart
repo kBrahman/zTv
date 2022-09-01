@@ -14,8 +14,8 @@ class Channel extends StatelessWidget {
   var isOff = false;
   ScrollController? sc;
   String query = '';
-  var filterLanguage = ANY_LANGUAGE;
-  var filterCategory = ANY_CATEGORY;
+  String? filterLanguage;
+  String? filterCategory;
 
   String? logo;
 
@@ -40,4 +40,5 @@ class Channel extends StatelessWidget {
           ),
         ));
   }
+
 }

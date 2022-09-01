@@ -31,18 +31,18 @@ var colorCodes = {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   String data = await rootBundle.loadString('assets/local.properties');
-  var iterable = data.split('\n').where((element) => !element.startsWith('#') && element.isNotEmpty);
-  var props = {for (var v in iterable) v.split('=')[0]: v.split('=')[1]};
-  runApp(Ztv(props['playlist'], props['x_list']));
+  final iterable = data.split('\n').where((element) => !element.startsWith('#') && element.isNotEmpty);
+  final props = {for (var v in iterable) v.split('=')[0]: v.split('=')[1]};
+  runApp(Ztv(props['playlist'], props['lans']));
 }
 
 class Ztv extends StatelessWidget {
   static const TAG = 'zTv_Ztv';
 
-  final playlist;
-  final xList;
+  final String? playlist;
+  final String? _lans;
 
-  const Ztv(this.playlist, this.xList, {Key? key}) : super(key: key);
+  const Ztv(this.playlist, this._lans, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -60,15 +60,15 @@ class Ztv extends StatelessWidget {
           primarySwatch: MaterialColor(0XFFF7000F, colorCodes),
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: HomePage(playlist, xList),
+        home: HomePage(playlist, _lans),
       );
 }
 
 class HomePage extends StatefulWidget {
   final playlist;
-  final xList;
+  final _lans;
 
-  const HomePage(this.playlist, this.xList, {Key? key}) : super(key: key);
+  const HomePage(this.playlist, this._lans, {Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -79,19 +79,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   static const YEAR_IN_SEC = 365 * 24 * 3600;
   static const HAS_IPTV = 'has_iptv';
 
-  dynamic _link;
-  var _xLink;
+  var _lans;
   var _dataHolder;
   var _offset = 0.0;
   var _txtFieldTxt;
-  var _query;
+  String? _query;
   var _connectedToInet = true;
-  var _filterCategory = ANY_CATEGORY;
   var _uiState = UIState.MAIN;
   var _title = 'Player';
   final stateStack = [UIState.MAIN];
-  List<String> _droDownLanguages = [];
-  List<String> _dropDownCategories = [];
   bool? _hasIPTV;
   var purchase = ZtvPurchases();
   String? id;
@@ -117,19 +113,22 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     });
   }
 
-  void _play() {
-    if (_link is String && _link == widget.playlist) return;
-    _droDownLanguages = [];
-    _dropDownCategories = [];
-    if (_link == null || _link is List) _link = _txtFieldTxt;
-    if (_link == null || _link.trim().isEmpty) return;
-    log(TAG, 'play=>$_link');
-    if (_connectedToInet && (_link.endsWith('=m3u') || _link.contains('download.php?id') || _link.endsWith('.m3u')))
+  Future<void> _play() async {
+    log(TAG, 'play=>${_info.linkOrList}');
+    if (_info.linkOrList is String && _info.linkOrList == widget.playlist) return;
+    _info.dropDownLanguages = [];
+    _info.dropDownCategories = [];
+    if (_info.linkOrList == null || _info.linkOrList is List) _info.linkOrList = _txtFieldTxt;
+    if (_info.linkOrList == null || _info.linkOrList.trim().isEmpty) return;
+    if (_connectedToInet &&
+        (_info.linkOrList.endsWith('=m3u') || _info.linkOrList.contains('download.php?id') || _info.linkOrList.endsWith('.m3u')))
       setState(() {
+        _playListInfo.filterCategory = getLocalizedCategory(_playListInfo.filterCategory, AppLocalizations.of(context));
+        _playListInfo.filterLanguage = getLocalizedLanguage(_playListInfo.filterLanguage, AppLocalizations.of(context));
         _uiState = UIState.PLAYLIST;
         stateStack.add(UIState.PLAYLIST);
       });
-    else if (_connectedToInet || isLocalFile(_link))
+    else if (_connectedToInet || isLocalFile(_info.linkOrList))
       setState(() {
         _title = '';
         _uiState = UIState.PLAYER;
@@ -137,7 +136,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       });
     else
       showSnack(AppLocalizations.of(context)?.no_inet ?? 'No internet', 2);
-    _txtFieldTxt = _link;
+    _txtFieldTxt = _info.linkOrList;
   }
 
   void showSnack(String s, dur) {
@@ -151,33 +150,37 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void _onTap(link, List<Widget> data, double offset, String query, filterLanguage, filterCategory, title, logo, filterLanguages,
       categories, hasFilter, onChannelOff) {
     _onChannelOff = onChannelOff;
-    info.filterLanguage = filterLanguage;
-    _filterCategory = filterCategory;
+    _info.filterLanguage = filterLanguage;
+    _info.filterCategory = filterCategory;
     _title = title;
-    _droDownLanguages = filterLanguages;
-    _dropDownCategories = categories;
+    _info.dropDownLanguages = filterLanguages;
+    _info.dropDownCategories = categories;
     _logo = logo;
     _dataHolder = data;
     _offset = offset;
     _query = query;
     setState(() {
-      _link = link;
+      _info.linkOrList = link;
       _uiState = UIState.PLAYER;
       stateStack.add(UIState.PLAYER);
     });
     log(TAG, 'on tap, data=>$data');
   }
 
-  get info => stateStack.last == UIState.PLAYLIST ? _playListInfo : _myIPTVInfo;
+  void tst() {}
+
+  PlaylistInfo get _info => stateStack.last == UIState.PLAYLIST ? _playListInfo : _myIPTVInfo;
+
 
   void onPlaylistTap(link) => setState(() {
-        _link = link;
+        _info.linkOrList = link;
         _uiState = UIState.PLAYLIST;
         stateStack.add(UIState.PLAYLIST);
       });
 
   Future<bool> willPop() {
-    _link = _dataHolder;
+    _info.linkOrList = _dataHolder;
+    log(_HomePageState.TAG, 'link or list=>${_info.linkOrList}');
     stateStack.removeLast();
     if (stateStack.isEmpty) return Future.value(true);
     final last = stateStack.last;
@@ -187,8 +190,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       if (_uiState != UIState.PLAYLIST && _uiState != UIState.MY_IPTV) {
         _query = null;
         _offset = 0.0;
-        info.filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, context);
-        _filterCategory = getLocalizedCategory(ANY_CATEGORY, context);
+        _info.filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, AppLocalizations.of(context));
+        _info.filterCategory = getLocalizedCategory(ANY_CATEGORY, AppLocalizations.of(context));
         _logo = null;
       }
     });
@@ -261,7 +264,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                             style: Theme.of(context).textTheme.headline5,
                           ),
                           TextField(
-                            onChanged: (String txt) => _link = txt,
+                            onChanged: (String txt) => _info.linkOrList = txt,
                             decoration: InputDecoration(
                                 hintText: AppLocalizations.of(context)?.link_val ?? 'Video URL or IPTV playlist URL'),
                             controller: TextEditingController(text: _txtFieldTxt),
@@ -277,15 +280,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
         );
       case UIState.PLAYLIST:
-        return PlaylistWidget(_link, null, _onTap, _offset, _query, _filterCategory, _txtFieldTxt, _droDownLanguages,
-            _dropDownCategories, true, db, _playListInfo);
+        return PlaylistWidget(null, _onTap, _offset, _query, _txtFieldTxt, true, db, _playListInfo);
       case UIState.PLAYER:
-        return Player(_link.trim(), _title, _logo, db, _onChannelOff, _myIPTVInfo.isTrial, onMain);
+        return Player(_info.linkOrList.trim(), _title, _logo, db, _onChannelOff, _myIPTVInfo.isTrial, _onMain);
       case UIState.MY_PLAYLISTS:
         return MyPlaylists(onPlaylistTap, db);
       case UIState.MY_IPTV:
-        return PlaylistWidget(_link, _xLink, _onTap, _offset, _query, _filterCategory, _txtFieldTxt, _droDownLanguages,
-            _dropDownCategories, false, db, _myIPTVInfo);
+        return PlaylistWidget(_lans, _onTap, _offset, _query, _txtFieldTxt, false, db, _myIPTVInfo);
       case UIState.HISTORY:
         return HistoryWidget(db, _historyItemTap);
     }
@@ -349,11 +350,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   myIPTV(bool isTrial) {
     _myIPTVInfo.isTrial = isTrial;
-    if (_myIPTVInfo.myIPTVPlaylist != null)
-      _link = _myIPTVInfo.myIPTVPlaylist;
-    else {
-      _link = widget.playlist;
-      _xLink = widget.xList;
+    _myIPTVInfo.filterCategory = getLocalizedCategory(_myIPTVInfo.filterCategory, AppLocalizations.of(context));
+    _myIPTVInfo.filterLanguage = getLocalizedLanguage(_myIPTVInfo.filterLanguage, AppLocalizations.of(context));
+    if (_myIPTVInfo.linkOrList == null){
+      _info.linkOrList = widget.playlist;
+      _lans = widget._lans;
     }
     setState(() => _uiState = UIState.MY_IPTV);
     stateStack.add(UIState.MY_IPTV);
@@ -394,14 +395,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   _historyItemTap(String title, String link, String? logo) {
     setState(() {
       _title = title;
-      _link = link;
-      _logo = _logo;
+      _info.linkOrList = link;
+      _logo = logo;
       _uiState = UIState.PLAYER;
       stateStack.add(_uiState);
     });
   }
 
-  void onMain() {
+  void _onMain() {
     setState(() => _uiState = UIState.MAIN);
     animate(0);
   }

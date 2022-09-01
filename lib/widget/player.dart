@@ -50,8 +50,8 @@ class _PlayerState extends State<Player> {
   bool paused = false;
   var chOff = false;
   bool inserted = false;
-
-  _PlayerState();
+  final _platform = const MethodChannel('ztv.channel/app');
+  bool _securityOff = false;
 
   @override
   void initState() {
@@ -62,22 +62,33 @@ class _PlayerState extends State<Player> {
       log(TAG, 'startsWith, ds now=>$dataSource');
     }
     _delegateToVLC = delegate(dataSource);
+    initVideo(dataSource);
+    super.initState();
+  }
+
+  void initVideo(String dataSource) {
+    log(_PlayerState.TAG, 'initVideo, ds=>$dataSource');
     if (_delegateToVLC)
       initVLC(dataSource);
     else {
       _controller = VideoPlayerController.network(dataSource);
-      _initializeVideoPlayerFuture = _controller.initialize();
+      setState(() {
+        _initializeVideoPlayerFuture = (_controller as VideoPlayerController).initialize();
+      });
     }
-    super.initState();
   }
 
   void initVLC(String url) {
     log(TAG, 'init vlc');
-    _controller = VlcPlayerController.network(url, autoPlay: true)
-      ..addOnInitListener(() {
-        log(TAG, 'on init callback, is playing=>${_controller.value}');
-        repeatedCheck(_controller);
-      });
+    try {
+      _controller = VlcPlayerController.network(url, autoPlay: true)
+        ..addOnInitListener(() {
+          log(TAG, 'on init callback, is playing=>${_controller.value}');
+          repeatedCheck(_controller);
+        });
+    } catch (e) {
+      log(_PlayerState.TAG, 'vlc e=>$e');
+    }
   }
 
   getUrl(dataSource) => dataSource is Channel ? dataSource.url : dataSource;
@@ -85,6 +96,7 @@ class _PlayerState extends State<Player> {
   @override
   void dispose() {
     _controller.dispose();
+    _platform.invokeMethod('securityOn');
     super.dispose();
   }
 
@@ -160,17 +172,22 @@ class _PlayerState extends State<Player> {
                       final err = snapshot.error;
                       var hasError = snapshot.hasError;
                       if (hasError && err is PlatformException && err.message?.contains('Source error') == true) {
-                        http.Request req = http.Request("Get", Uri.parse(_controller.dataSource))..followRedirects = false;
+                        log((_PlayerState.TAG), 'platform exc=>$err');
+                        http.Request req = http.Request("Get", Uri.parse((_controller as VideoPlayerController).dataSource))
+                          ..followRedirects = false;
                         http.Client baseClient = http.Client();
                         baseClient.send(req).then((resp) {
                           final loc = resp.headers['location'];
                           log(TAG, 'loc=>$loc');
+                          var statusCode = resp.statusCode;
+                          log(_PlayerState.TAG, 'code=>$statusCode');
+                          log(_PlayerState.TAG, 'resp=>$resp');
                           if (loc != null)
                             setState(() {
                               _controller = VideoPlayerController.network(loc);
                               _initializeVideoPlayerFuture = _controller.initialize();
                             });
-                          else if (resp.statusCode == 403 || resp.statusCode == 404)
+                          else if (statusCode == 403 || statusCode == 404)
                             _off();
                           else
                             initAndSetDelegate(widget._link);
@@ -178,9 +195,11 @@ class _PlayerState extends State<Player> {
                           log(TAG, 'on err, e=>$e, s=>$s');
                           if (e is SocketException)
                             _off();
-                          else {
+                          else if (e is HandshakeException && !_securityOff) {
+                            _platform.invokeMethod('securityOff').then((value) => initVideo(_controller.dataSource));
+                            _securityOff = true;
+                          } else
                             initAndSetDelegate(widget._link);
-                          }
                         });
                         return pb();
                       } else if (hasError &&
@@ -191,7 +210,11 @@ class _PlayerState extends State<Player> {
                         return pb();
                       } else if (hasError) return const WidgetChOff();
                       if (!paused) {
-                        _controller.play();
+                        try {
+                          _controller.play();
+                        } catch (e) {
+                          log(_PlayerState.TAG, 'e=>$e');
+                        }
                         if (widget.isTrial) startDemoTimer();
                       }
                       if (!inserted)
