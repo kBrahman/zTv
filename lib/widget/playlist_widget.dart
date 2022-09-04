@@ -26,9 +26,10 @@ class PlaylistWidget extends StatefulWidget {
   final String? _lans;
   final Database db;
   PlaylistInfo _info;
+  final Function(PlaylistInfo) _onSetInfo;
 
-  PlaylistWidget(
-      this._lans, this._onTap, this._offset, this._query, this._playlistLink, this.hasSavePlayList, this.db, this._info,
+  PlaylistWidget(this._lans, this._onTap, this._offset, this._query, this._playlistLink, this.hasSavePlayList, this.db,
+      this._info, this._onSetInfo,
       {Key? key})
       : super(key: key);
 
@@ -179,23 +180,24 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     final model =
         IsolateModel(channelsWithLans ?? const [], data, widget._info, widget.hasSavePlayList, AppLocalizations.of(context));
 
-    late IsolateResponseModel response;
+    late PlaylistInfo info;
     try {
-      response = await compute(parse, model);
-      widget._info = response.playlistInfo;
+      info = await compute(parse, model);
+      widget._info = info;
       log(_PlaylistWidgetState.TAG, 'received info=>${widget._info}');
       setState(() =>
           widget._info.hasFilter = (widget._info.dropDownCategories.length > 1 || widget._info.dropDownLanguages.length > 1));
     } catch (e) {
       log(TAG, 'e=>$e');
     }
-    return response.chs;
+    widget._onSetInfo(info);
+    return info.linkOrList;
   }
 
   void _setSC(Channel element) => element.sc = _scrollController;
 
   Future<List<Channel>> fileToPlaylist(link) => File(link).readAsString().then((value) =>
-      parse(IsolateModel(const [], value, widget._info, widget.hasSavePlayList, AppLocalizations.of(context))).chs
+      parse(IsolateModel(const [], value, widget._info, widget.hasSavePlayList, AppLocalizations.of(context))).linkOrList
         ..forEach((_setSC)));
 
   Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) {
@@ -243,7 +245,7 @@ List<Channel> parseLans(IsolateModel model) {
   return list;
 }
 
-IsolateResponseModel parse(IsolateModel model) {
+PlaylistInfo parse(IsolateModel model) {
   log(TAG, 'parse');
   final lines = model.data.split("\n");
   final channelsWithLans = model.chs;
@@ -332,7 +334,7 @@ IsolateResponseModel parse(IsolateModel model) {
   if (!(model.hasSavePlaylist)) info.myIPTVPlaylist = list;
   log(TAG, 'finish parse=>$list');
   log(TAG, 'info=>$info');
-  return IsolateResponseModel(list, model.info);
+  return info;
 }
 
 bool badLink(link) =>

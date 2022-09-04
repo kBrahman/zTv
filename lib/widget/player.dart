@@ -187,7 +187,7 @@ class _PlayerState extends State<Player> {
                               _controller = VideoPlayerController.network(loc);
                               _initializeVideoPlayerFuture = _controller.initialize();
                             });
-                          else if (statusCode == 403 || statusCode == 404)
+                          else if (statusCode == 403 || statusCode == 404 || statusCode == 401)
                             _off();
                           else
                             initAndSetDelegate(widget._link);

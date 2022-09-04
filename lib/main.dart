@@ -94,8 +94,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   late Database db;
   String? _logo;
   VoidCallback? _onChannelOff;
-  final _myIPTVInfo = PlaylistInfo();
-  final _playListInfo = PlaylistInfo();
+  var _myIPTVInfo = PlaylistInfo();
+  var _playListInfo = PlaylistInfo();
   var _scale = 1.0;
 
   @override
@@ -171,7 +171,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   PlaylistInfo get _info => stateStack.last == UIState.PLAYLIST ? _playListInfo : _myIPTVInfo;
 
-
   void onPlaylistTap(link) => setState(() {
         _info.linkOrList = link;
         _uiState = UIState.PLAYLIST;
@@ -179,9 +178,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       });
 
   Future<bool> willPop() {
+    log(TAG, 'will pop, state stack=>$stateStack');
     _info.linkOrList = _dataHolder;
-    log(_HomePageState.TAG, 'link or list=>${_info.linkOrList}');
     stateStack.removeLast();
+    log(TAG, 'stack empty after remove=>${stateStack.isEmpty}');
     if (stateStack.isEmpty) return Future.value(true);
     final last = stateStack.last;
     log(TAG, 'last=>$last');
@@ -280,13 +280,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
         );
       case UIState.PLAYLIST:
-        return PlaylistWidget(null, _onTap, _offset, _query, _txtFieldTxt, true, db, _playListInfo);
+        return PlaylistWidget(null, _onTap, _offset, _query, _txtFieldTxt, true, db, _playListInfo, (i) => _playListInfo = i);
       case UIState.PLAYER:
         return Player(_info.linkOrList.trim(), _title, _logo, db, _onChannelOff, _myIPTVInfo.isTrial, _onMain);
       case UIState.MY_PLAYLISTS:
         return MyPlaylists(onPlaylistTap, db);
       case UIState.MY_IPTV:
-        return PlaylistWidget(_lans, _onTap, _offset, _query, _txtFieldTxt, false, db, _myIPTVInfo);
+        return PlaylistWidget(_lans, _onTap, _offset, _query, _txtFieldTxt, false, db, _myIPTVInfo, (i) => _myIPTVInfo = i);
       case UIState.HISTORY:
         return HistoryWidget(db, _historyItemTap);
     }
@@ -352,7 +352,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _myIPTVInfo.isTrial = isTrial;
     _myIPTVInfo.filterCategory = getLocalizedCategory(_myIPTVInfo.filterCategory, AppLocalizations.of(context));
     _myIPTVInfo.filterLanguage = getLocalizedLanguage(_myIPTVInfo.filterLanguage, AppLocalizations.of(context));
-    if (_myIPTVInfo.linkOrList == null){
+    _myIPTVInfo.linkOrList = _myIPTVInfo.myIPTVPlaylist;
+    if (_myIPTVInfo.linkOrList == null) {
       _info.linkOrList = widget.playlist;
       _lans = widget._lans;
     }
@@ -405,6 +406,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void _onMain() {
     setState(() => _uiState = UIState.MAIN);
     animate(0);
+    stateStack.removeRange(1,stateStack.length);
   }
 
   void animate(count) => Future.delayed(const Duration(milliseconds: 250), () {
