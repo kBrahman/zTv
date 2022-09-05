@@ -14,10 +14,3 @@ class IsolateModel {
   IsolateModel(this.chs, this.data, this.info, this.hasSavePlaylist, this.localizations);
 
 }
-
-class IsolateResponseModel {
-  final List<Channel> chs;
-  final PlaylistInfo playlistInfo;
-
-  IsolateResponseModel(this.chs, this.playlistInfo);
-}

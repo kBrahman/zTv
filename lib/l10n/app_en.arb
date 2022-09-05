@@ -25,7 +25,6 @@
   "language": "Language",
   "category": "Category",
   "filter": "Filter",
-  "any_category": "Any category",
   "reset": "Reset",
   "anime": "Animation",
   "auto": "Auto",
@@ -56,7 +55,6 @@
   "travel": "Travel",
   "weather": "Weather",
   "nan": "Undefined",
-  "any_lan": "Any language",
   "ak": "Akan",
   "sq": "Albanian",
   "am": "Amharic",
@@ -150,5 +148,8 @@
   "as": "Assamese",
   "history": "History",
   "playlist_link_broken": "Playlist link is broken. Can't save it.",
-  "conn_err": "Connection error, try again please"
+  "conn_err": "Connection error, try again please",
+  "any_category": "Any category",
+  "any_lan": "Any language",
+  "sign_in_err": "Could not sign in, try again please"
 }

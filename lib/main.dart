@@ -297,7 +297,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     try {
       id = await _signIn();
     } catch (e) {
-      showSnack('Could not sign in, try again please', 2);
+      showSnack(AppLocalizations.of(context)?.sign_in_err ?? 'Could not sign in, try again please', 3);
       setState(() => purchase.product?.status = ProductStatus.purchasable);
     }
     if (id == null) {
@@ -310,19 +310,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     try {
       await Firebase.initializeApp();
     } catch (e) {
-      showSnack(AppLocalizations?.of(context)?.conn_err ?? "Connection error, try again please", 2);
+      showSnack(AppLocalizations.of(context)?.conn_err ?? "Connection error, try again please", 2);
       setState(() => purchase.product?.status = ProductStatus.purchasable);
-      log(TAG, 'e=>$e');
       return;
     }
     var doc = FirebaseFirestore.instance.doc('user/$id');
     doc.get().then((value) {
-      var exists = value.exists;
+      final exists = value.exists;
       setState(() {
         _hasIPTV = exists && Timestamp.now().seconds - (value['time'] as Timestamp).seconds < YEAR_IN_SEC;
       });
       if (!_hasIPTV!) buyIptv(true);
-      SharedPreferences.getInstance().then((prefs) => prefs.setBool(HAS_IPTV, _hasIPTV!));
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setBool(HAS_IPTV, _hasIPTV!);
+      });
     });
   }
 
@@ -406,7 +407,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void _onMain() {
     setState(() => _uiState = UIState.MAIN);
     animate(0);
-    stateStack.removeRange(1,stateStack.length);
+    stateStack.removeRange(1, stateStack.length);
   }
 
   void animate(count) => Future.delayed(const Duration(milliseconds: 250), () {
