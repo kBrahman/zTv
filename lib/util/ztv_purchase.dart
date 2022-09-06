@@ -48,7 +48,8 @@ class ZtvPurchases extends ChangeNotifier {
     if (purchaseDetails.status == PurchaseStatus.purchased) {
       log(TAG, 'purchased');
       FirebaseFirestore.instance.doc('user/$id').set({'time': Timestamp.now()}).then((_) => onPurchased());
-    } else if (purchaseDetails.status == PurchaseStatus.error) onPurchaseError();
+    } else if (purchaseDetails.status == PurchaseStatus.error || purchaseDetails.status == PurchaseStatus.canceled)
+      onPurchaseError();
     if (purchaseDetails.pendingCompletePurchase) {
       iapConnection.completePurchase(purchaseDetails);
       log(TAG, 'complete purchase');

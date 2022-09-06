@@ -364,9 +364,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     if (!isTrial)
       SharedPreferences.getInstance().then((value) async {
         final millis = DateTime.now().millisecondsSinceEpoch;
-        var lastCheckTime = value.getInt(LAST_SUBS_CHECK_TIME) ?? 0;
-        lastCheckTime = 0;
-        if (millis - (lastCheckTime) > 24 * 3600000) {
+        final lastCheckTime = value.getInt(LAST_SUBS_CHECK_TIME) ?? 0;
+        if (millis - lastCheckTime > 24 * 3600000) {
           log(_HomePageState.TAG, 'check expired');
           value.setInt(LAST_SUBS_CHECK_TIME, millis);
           try {
