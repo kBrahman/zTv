@@ -151,5 +151,6 @@
   "history": "Istorie",
   "playlist_link_broken": "Link-ul pentru lista de redare este întrerupt. Nu o pot salva.",
   "conn_err": "Eroare de conexiune, încercați din nou",
-  "sign_in_err":"Nu m-am putut conecta, încercați din nou"
+  "sign_in_err": "Nu m-am putut conecta, încercați din nou",
+  "subs_expired": "Abonamentul dvs. a expirat, vă rugăm să cumpărați din nou"
 }

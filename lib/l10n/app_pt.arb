@@ -132,5 +132,6 @@
   "history": "História",
   "playlist_link_broken": "O link da lista de reprodução está quebrado. Não é possível salvá-lo.",
   "conn_err": "Erro de conexão, tente novamente por favor",
-  "sign_in_err": "Não foi possível fazer login, tente novamente por favor"
+  "sign_in_err": "Não foi possível fazer login, tente novamente por favor",
+"subs_expired":"Sua assinatura expirou, compre novamente por favor"
 }

@@ -71,7 +71,7 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies { implementation 'io.popanet.sdk:popa:2.0.24' }
 
 apply plugin: 'com.google.gms.google-services'
 

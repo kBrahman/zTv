@@ -77,7 +77,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   static const TAG = '_HomePageState';
   static const YEAR_IN_SEC = 365 * 24 * 3600;
-  static const HAS_IPTV = 'has_iptv';
 
   var _lans;
   var _dataHolder;
@@ -108,9 +107,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   hasIPTV() async {
     var prefs = await SharedPreferences.getInstance();
     await purchase.loadPurchases();
-    setState(() {
-      _hasIPTV = prefs.getBool(HAS_IPTV) ?? false;
-    });
+    setState(() => _hasIPTV = prefs.getBool(HAS_IPTV) ?? false);
   }
 
   Future<void> _play() async {
@@ -342,7 +339,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           id!,
           () => setState(() {
                 _hasIPTV = true;
-                SharedPreferences.getInstance().then((value) => value.setBool(HAS_IPTV, _hasIPTV!));
+                SharedPreferences.getInstance().then((value) {
+                  value.setBool(HAS_IPTV, _hasIPTV!);
+                  value.setInt(LAST_SUBS_CHECK_TIME, DateTime.now().millisecondsSinceEpoch);
+                });
               }),
           () => setState(() => purchase.product?.status = ProductStatus.purchasable));
       setState(() => purchase.product?.status = ProductStatus.pending);
@@ -360,6 +360,33 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
     setState(() => _uiState = UIState.MY_IPTV);
     stateStack.add(UIState.MY_IPTV);
+
+    if (!isTrial)
+      SharedPreferences.getInstance().then((value) async {
+        final millis = DateTime.now().millisecondsSinceEpoch;
+        var lastCheckTime = value.getInt(LAST_SUBS_CHECK_TIME) ?? 0;
+        lastCheckTime = 0;
+        if (millis - (lastCheckTime) > 24 * 3600000) {
+          log(_HomePageState.TAG, 'check expired');
+          value.setInt(LAST_SUBS_CHECK_TIME, millis);
+          try {
+            await Firebase.initializeApp();
+          } catch (e) {
+            return;
+          }
+          if (!(await FirebaseFirestore.instance.doc('user/$id').get()).exists) {
+            stateStack.removeLast();
+            setState(() {
+              _uiState = stateStack.last;
+              _hasIPTV = false;
+              purchase.product?.status = ProductStatus.purchasable;
+            });
+            showSnack(AppLocalizations.of(context)?.subs_expired ?? 'Your subscription is expired, buy again please', 7);
+            value.remove(HAS_IPTV);
+            value.remove(LAST_SUBS_CHECK_TIME);
+          }
+        }
+      });
   }
 
   void checkConnection() async {

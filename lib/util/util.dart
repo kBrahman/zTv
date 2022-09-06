@@ -1,11 +1,11 @@
 // ignore_for_file: constant_identifier_names, avoid_print
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const TAG = 'TOP';
 const UNDEFINED = 'Undefined';
-
+const LAST_SUBS_CHECK_TIME = 'last_subs_check_time';
+const HAS_IPTV = 'has_iptv';
 const TURKMEN = 'Turkmen';
 const ANY_LANGUAGE = 'Any language';
 const TAMIL = 'Tamil';

@@ -151,5 +151,6 @@
   "conn_err": "Connection error, try again please",
   "any_category": "Any category",
   "any_lan": "Any language",
-  "sign_in_err": "Could not sign in, try again please"
+  "sign_in_err": "Could not sign in, try again please",
+  "subs_expired": "Your subscription is expired, buy again please"
 }
