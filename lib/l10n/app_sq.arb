@@ -150,5 +150,6 @@
   "as":"Asamez",
   "history":"Historia",
   "playlist_link_broken": "Lidhja e listës së luajtjes është e prishur. Nuk mund ta ruaj.",
-  "conn_err": "Gabim lidhjeje, ju lutemi provoni përsëri"
+  "conn_err": "Gabim lidhjeje, ju lutemi provoni përsëri",
+  "sign_in_err":"Nuk mund të identifikohesha, provo sërish"
 }

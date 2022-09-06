@@ -143,5 +143,6 @@
   "mnk": "Mandinga",
   "history": "Canales vistos",
   "playlist_link_broken": "El enlace de la lista de reproducción está roto. No puedo guardarlo.",
-  "conn_err": "Error de conexión, inténtalo de nuevo por favor"
+  "conn_err": "Error de conexión, inténtalo de nuevo por favor",
+  "sign_in_err": "No se pudo iniciar sesión, intente nuevamente por favor"
 }

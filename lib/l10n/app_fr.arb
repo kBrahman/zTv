@@ -149,5 +149,6 @@
   "as": "Assamais",
   "history": "Chaînes regardées",
   "playlist_link_broken": "Le lien de la liste de lecture est rompu. Impossible de le sauvegarder.",
-  "conn_err": "Erreur de connexion, réessayez s'il vous plaît"
+  "conn_err": "Erreur de connexion, réessayez s'il vous plaît",
+"sign_in_err":"Impossible de se connecter, veuillez réessayer s'il vous plaît"
 }
