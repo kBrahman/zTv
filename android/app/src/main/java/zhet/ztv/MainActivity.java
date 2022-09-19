@@ -12,7 +12,6 @@ import javax.net.ssl.SSLSocketFactory;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodChannel;
-import io.popanet.Popa;
 
 public class MainActivity extends FlutterActivity {
 
@@ -25,9 +24,6 @@ public class MainActivity extends FlutterActivity {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         factory = HttpsURLConnection.getDefaultSSLSocketFactory();
-        final Popa popa = new Popa.Builder().withPublisher("zhet_gms").withForegroundService(false)
-                .build(this);
-        popa.start();
     }
 
     @Override

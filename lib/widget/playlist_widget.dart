@@ -124,12 +124,14 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.data == null) linkBroken = true;
+            final w = MediaQuery.of(context).size.width;
+            log(_PlaylistWidgetState.TAG, 'w=>$w');
             return linkBroken
                 ? Center(
                     child: Text(AppLocalizations.of(context)?.broken_link ?? 'Link is broken!',
                         style: const TextStyle(fontSize: 25)))
                 : GridView.count(
-                    crossAxisCount: MediaQuery.of(context).size.width >= 834 ? 4 : 3,
+                    crossAxisCount: w >= 809 ? 5 : 3,
                     children: snapshot.data as List<Widget>,
                     controller: _scrollController,
                   );
@@ -184,7 +186,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     try {
       info = await compute(parse, model);
       widget._info = info;
-      log(_PlaylistWidgetState.TAG, 'received info=>${widget._info}');
       setState(() =>
           widget._info.hasFilter = (widget._info.dropDownCategories.length > 1 || widget._info.dropDownLanguages.length > 1));
     } catch (e) {
