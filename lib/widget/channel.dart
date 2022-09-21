@@ -2,7 +2,6 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:ztv/util/util.dart';
 
 class Channel extends StatelessWidget {
   static const TAG = 'Channel';
@@ -19,26 +18,23 @@ class Channel extends StatelessWidget {
 
   String? logo;
 
-  Channel(this.title, this.url, this.tap);
+  Channel(this.title, this.url, this.tap, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     const img = Image(image: AssetImage('icon/ztv.jpg'));
-    return Padding(
-        padding: const EdgeInsets.all(4),
-        child: GestureDetector(
-          onTap: () => tap(sc?.offset, query, filterLanguage, filterCategory, logo, this),
-          child: Card(
-            elevation: 4,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(child: logo == null ? img : Image.network(logo!, errorBuilder: (c, e, t) => img)),
-                Text(title, style: const TextStyle(fontSize: 15)),
-              ],
-            ),
-          ),
-        ));
+    return GestureDetector(
+      onTap: () => tap(sc?.offset, query, filterLanguage, filterCategory, logo, this),
+      child: Card(
+        elevation: 4,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(child: logo == null ? img : Image.network(logo!, errorBuilder: (c, e, t) => img)),
+            Text(title, style: const TextStyle(fontSize: 15)),
+          ],
+        ),
+      ),
+    );
   }
-
 }

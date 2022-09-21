@@ -333,8 +333,6 @@ PlaylistInfo parse(IsolateModel model) {
   info.filterLanguage = getLocalizedLanguage(info.filterLanguage, locs);
   info.linkOrList = list;
   if (!(model.hasSavePlaylist)) info.myIPTVPlaylist = list;
-  log(TAG, 'finish parse=>$list');
-  log(TAG, 'info=>$info');
   return info;
 }
 
