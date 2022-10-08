@@ -19,7 +19,7 @@ dependencies:
   path: ^1.8.0
   flutter_vlc_player: ^7.1.5
   in_app_purchase: ^3.0.7
-  cloud_firestore: ^3.4.8
+  cloud_firestore: ^3.5.1
   google_sign_in: ^5.4.2
   shared_preferences: ^2.0.6
   flutter_localizations:

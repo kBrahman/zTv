@@ -20,5 +20,6 @@ const LOCALES = [
   Locale('ro', ''),
   Locale('de', ''),
   Locale('vi', ''),
-  Locale('pl', '')
+  Locale('pl', ''),
+  Locale('kk', '')
 ];
