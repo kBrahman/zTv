@@ -1,6 +1,5 @@
 // ignore_for_file: constant_identifier_names
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Channel extends StatelessWidget {
@@ -10,7 +9,6 @@ class Channel extends StatelessWidget {
   final languages = <String>{};
   var categories = <String>{};
   final Function tap;
-  var isOff = false;
   ScrollController? sc;
   String query = '';
   String? filterLanguage;
@@ -24,17 +22,12 @@ class Channel extends StatelessWidget {
   Widget build(BuildContext context) {
     const img = Image(image: AssetImage('icon/ztv.jpg'));
     return GestureDetector(
-      onTap: () => tap(sc?.offset, query, filterLanguage, filterCategory, logo, this),
-      child: Card(
-        elevation: 4,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Flexible(child: logo == null ? img : Image.network(logo!, errorBuilder: (c, e, t) => img)),
-            Text(title, style: const TextStyle(fontSize: 15)),
-          ],
-        ),
-      ),
-    );
+        onTap: () => tap(sc?.offset, query, filterLanguage, filterCategory, logo, this),
+        child: Card(
+            elevation: 4,
+            child: Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Flexible(child: logo == null ? img : Image.network(logo!, errorBuilder: (c, e, t) => img)),
+              Text(title, style: const TextStyle(fontSize: 15))
+            ])));
   }
 }

@@ -22,13 +22,13 @@ class PlaylistWidget extends StatefulWidget {
 
   String? _query;
   final String? _playlistLink;
-  final bool hasSavePlayList;
+  final bool _hasSavePlayList;
   final String? _lans;
-  final Database db;
+  final Database _db;
   PlaylistInfo _info;
   final Function(PlaylistInfo) _onSetInfo;
 
-  PlaylistWidget(this._lans, this._onTap, this._offset, this._query, this._playlistLink, this.hasSavePlayList, this.db,
+  PlaylistWidget(this._lans, this._onTap, this._offset, this._query, this._playlistLink, this._hasSavePlayList, this._db,
       this._info, this._onSetInfo,
       {Key? key})
       : super(key: key);
@@ -51,7 +51,6 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     _scrollController = ScrollController(initialScrollOffset: widget._offset);
     ctr = TextEditingController(text: widget._query);
     onTap = widget._onTap;
-    final u = File('path');
     super.initState();
   }
 
@@ -59,132 +58,122 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   Widget build(BuildContext context) {
     var searchActive = showSearchView || (widget._query != null && widget._query?.isNotEmpty == true);
     return Scaffold(
-      appBar: AppBar(leading: const BackButton(), actions: [
-        const SizedBox(width: 48),
-        Expanded(
-            child: searchActive
-                ? TextField(
-                    style: const TextStyle(color: Colors.white),
-                    onChanged: (String txt) {
-                      if (txt.trim().isNotEmpty)
-                        setState(() {
-                          widget._query = txt;
-                        });
-                    },
-                    controller: ctr,
-                    cursorColor: Colors.white,
-                    // controller: TextEditingController(text: widget._query),
-                    decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.only(top: 16),
-                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white))),
-                  )
-                : Container()),
-        searchActive
-            ? IconButton(
-                icon: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                ),
-                onPressed: () => setState(() {
-                  showSearchView = false;
-                  widget._query = null;
-                  ctr = null;
-                }),
-              )
-            : IconButton(
-                icon: const Icon(
-                  Icons.search,
-                  color: Colors.white,
-                ),
-                onPressed: () => setState(() => showSearchView = true)),
-        widget._info.hasFilter
-            ? IconButton(
-                icon: const Icon(Icons.filter_list, color: Colors.white),
-                onPressed: () => dialog(
-                        context,
-                        (lan, cat) => setState(() {
-                              widget._info.filterLanguage = lan;
-                              widget._info.filterCategory = cat;
-                            }), () {
-                      widget._info.filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, AppLocalizations.of(context));
-                      widget._info.filterCategory = getLocalizedCategory(ANY_CATEGORY, AppLocalizations.of(context));
-                    }))
-            : const SizedBox.shrink(),
-        if (widget.hasSavePlayList)
-          IconButton(
-              icon: const Icon(Icons.save, color: Colors.white),
-              onPressed: () => showDialog(context: context, builder: (_) => SaveDialog(widget._playlistLink, widget.db)))
-      ]),
-      body: FutureBuilder(
-        future: (widget._query == null || widget._query?.isEmpty == true) &&
-                widget._info.filterLanguage == getLocalizedLanguage(ANY_LANGUAGE, AppLocalizations.of(context)) &&
-                widget._info.filterCategory == getLocalizedCategory(ANY_CATEGORY, AppLocalizations.of(context))
-            ? getChannels(widget._info.linkOrList, widget._lans)
-            : getFilteredChannels(getChannels(widget._info.linkOrList, widget._lans), widget._query ?? ''),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.data == null) linkBroken = true;
-            final w = MediaQuery.of(context).size.width;
-            log(_PlaylistWidgetState.TAG, 'w=>$w');
-            return linkBroken
-                ? Center(
-                    child: Text(AppLocalizations.of(context)?.broken_link ?? 'Link is broken!',
-                        style: const TextStyle(fontSize: 25)))
-                : GridView.count(
-                    crossAxisCount: w >= 809 ? 5 : 3,
-                    children: snapshot.data as List<Widget>,
-                    controller: _scrollController,
-                  );
-          } else {
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      ),
-    );
+        appBar: AppBar(leading: const BackButton(), actions: [
+          const SizedBox(width: 48),
+          Expanded(
+              child: searchActive
+                  ? TextField(
+                      style: const TextStyle(color: Colors.white),
+                      onChanged: (String txt) {
+                        if (txt.trim().isNotEmpty)
+                          setState(() {
+                            widget._query = txt;
+                          });
+                      },
+                      controller: ctr,
+                      cursorColor: Colors.white,
+                      // controller: TextEditingController(text: widget._query),
+                      decoration: const InputDecoration(
+                          contentPadding: EdgeInsets.only(top: 16),
+                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white))),
+                    )
+                  : Container()),
+          searchActive
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                  ),
+                  onPressed: () => setState(() {
+                    showSearchView = false;
+                    widget._query = null;
+                    ctr = null;
+                  }),
+                )
+              : IconButton(
+                  icon: const Icon(
+                    Icons.search,
+                    color: Colors.white,
+                  ),
+                  onPressed: () => setState(() => showSearchView = true)),
+          widget._info.hasFilter
+              ? IconButton(
+                  icon: const Icon(Icons.filter_list, color: Colors.white),
+                  onPressed: () => dialog(
+                          context,
+                          (lan, cat) => setState(() {
+                                widget._info.filterLanguage = lan;
+                                widget._info.filterCategory = cat;
+                              }), () {
+                        widget._info.filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, AppLocalizations.of(context));
+                        widget._info.filterCategory = getLocalizedCategory(ANY_CATEGORY, AppLocalizations.of(context));
+                      }))
+              : const SizedBox.shrink(),
+          if (widget._hasSavePlayList)
+            IconButton(
+                icon: const Icon(Icons.save, color: Colors.white),
+                onPressed: () => showDialog(context: context, builder: (_) => SaveDialog(widget._playlistLink, widget._db)))
+        ]),
+        body: FutureBuilder(
+            future: (widget._query == null || widget._query?.isEmpty == true) &&
+                    widget._info.filterLanguage == getLocalizedLanguage(ANY_LANGUAGE, AppLocalizations.of(context)) &&
+                    widget._info.filterCategory == getLocalizedCategory(ANY_CATEGORY, AppLocalizations.of(context))
+                ? getChannels(widget._info.linkOrList, widget._lans)
+                : getFilteredChannels(getChannels(widget._info.linkOrList, widget._lans), widget._query ?? ''),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.data == null) linkBroken = true;
+                final w = MediaQuery.of(context).size.width;
+                log(_PlaylistWidgetState.TAG, 'w=>$w');
+                return linkBroken
+                    ? Center(
+                        child: Text(AppLocalizations.of(context)?.broken_link ?? 'Link is broken!',
+                            style: const TextStyle(fontSize: 25)))
+                    : GridView.count(
+                        crossAxisCount: w >= 809 ? 5 : 3, children: snapshot.data as List<Widget>, controller: _scrollController);
+              } else
+                return const Center(child: CircularProgressIndicator());
+            }));
   }
 
   Future<List<Channel>> getChannels(link, lans) async {
-    log(TAG, 'get channels, link=>$link');
+    log(_PlaylistWidgetState.TAG, 'get channels');
     if (link is List<Channel>) {
       log(_PlaylistWidgetState.TAG, 'link is list');
-      for (final ch in link)
-        if (ch.isOff)
-          link.remove(ch);
-        else {
-          ch.filterLanguage = widget._info.filterLanguage;
-          ch.filterCategory = widget._info.filterCategory;
-          _setSC(ch);
-        }
-
+      var t1 = time;
+      for (final ch in link) {
+        ch.filterLanguage = widget._info.filterLanguage;
+        ch.filterCategory = widget._info.filterCategory;
+        _setSC(ch);
+      }
+      var t2 = time;
+      log(_PlaylistWidgetState.TAG, 'iteration time=>${t2 - t1}');
       return Future.value(link);
     } else if (link.startsWith('/')) return Future.value(fileToPlaylist(link));
-
-    final value = await http.get(Uri.parse(widget._info.linkOrList));
-    if (value.statusCode == 404) {
+    final fList = <Future<http.Response>>[];
+    fList.add(http.get(Uri.parse(widget._info.linkOrList)));
+    const utf8decoder = Utf8Decoder();
+    List<Channel>? channelsWithLans;
+    if (lans != null) fList.add(http.get(Uri.parse(lans)));
+    final t1 = time;
+    final fResultList = await Future.wait(fList);
+    if (fResultList.first.statusCode == 404) {
       linkBroken = true;
       return Future.value(null);
     }
-    const utf8decoder = Utf8Decoder();
-    final data = utf8decoder.convert(value.bodyBytes);
-    List<Channel>? channelsWithLans;
-    if (lans != null) {
-      final dataWithLans = await http.get(Uri.parse(lans));
-      try {
-        channelsWithLans = await compute(
-            parseLans,
-            IsolateModel(
-                List.empty(), utf8decoder.convert(dataWithLans.bodyBytes), PlaylistInfo(), false, AppLocalizations.of(context)));
-      } catch (e) {
-        log(TAG, 'e=>$e');
-      }
-      log(TAG, 'ch with lans=>${channelsWithLans?.length}');
-    }
-    final model =
-        IsolateModel(channelsWithLans ?? const [], data, widget._info, widget.hasSavePlayList, AppLocalizations.of(context));
+    if (fResultList.length == 2)
+      channelsWithLans = await compute(
+          parseLans,
+          IsolateModel(
+              const [], utf8decoder.convert(fResultList.last.bodyBytes), PlaylistInfo(), false, AppLocalizations.of(context)));
 
+    final model = IsolateModel(channelsWithLans ?? const [], utf8decoder.convert(fResultList.first.bodyBytes), widget._info,
+        widget._hasSavePlayList, AppLocalizations.of(context));
     late PlaylistInfo info;
     try {
       info = await compute(parse, model);
+      final t2 = time;
+      log(_PlaylistWidgetState.TAG, 'tot chs comp time=>${t2 - t1}');
       widget._info = info;
       setState(() =>
           widget._info.hasFilter = (widget._info.dropDownCategories.length > 1 || widget._info.dropDownLanguages.length > 1));
@@ -195,10 +184,12 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
     return info.linkOrList;
   }
 
+  get time => DateTime.now().millisecondsSinceEpoch;
+
   void _setSC(Channel element) => element.sc = _scrollController;
 
   Future<List<Channel>> fileToPlaylist(link) => File(link).readAsString().then((value) =>
-      parse(IsolateModel(const [], value, widget._info, widget.hasSavePlayList, AppLocalizations.of(context))).linkOrList
+      parse(IsolateModel(const [], value, widget._info, widget._hasSavePlayList, AppLocalizations.of(context))).linkOrList
         ..forEach((_setSC)));
 
   Future<List<Channel>> getFilteredChannels(Future<List<Channel>> f, String q) {

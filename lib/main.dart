@@ -410,14 +410,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       });
 
   void _initDB() async {
-    db = await openDatabase(
-      p.join(await getDatabasesPath(), DB_NAME),
-      onCreate: (db, v) {
-        db.execute(CREATE_TABLE_HISTORY);
-        db.execute(CREATE_TABLE_PLAYLIST);
-      },
-      version: 1,
-    );
+    db = await openDatabase(p.join(await getDatabasesPath(), DB_NAME), onCreate: (db, v) {
+      db.execute(CREATE_TABLE_HISTORY);
+      db.execute(CREATE_TABLE_PLAYLIST);
+    }, version: 1);
   }
 
   _historyItemTap(String title, String link, String? logo) {

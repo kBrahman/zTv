@@ -22,7 +22,7 @@ class Player extends StatefulWidget {
   final String? _logo;
   final VoidCallback? _onChannelOff;
   final bool isTrial;
-  final VoidCallback onMain;
+  final VoidCallback _onMain;
 
   const Player(
     this._link,
@@ -31,7 +31,7 @@ class Player extends StatefulWidget {
     this.db,
     this._onChannelOff,
     this.isTrial,
-    this.onMain, {
+    this._onMain, {
     Key? key,
   }) : super(key: key);
 
@@ -56,10 +56,8 @@ class _PlayerState extends State<Player> {
   @override
   void initState() {
     var dataSource = widget._link;
-    log(TAG, 'ds=>$dataSource');
     if (dataSource.startsWith('https://59c5c86e10038.streamlock.net')) {
       dataSource = dataSource.replaceFirst('59c5c86e10038.streamlock.net', 'panel.dattalive.com');
-      log(TAG, 'startsWith, ds now=>$dataSource');
     }
     _delegateToVLC = delegate(dataSource);
     initVideo(dataSource);
@@ -103,7 +101,7 @@ class _PlayerState extends State<Player> {
   @override
   Widget build(BuildContext context) {
     final isAudioFile = (widget._link.endsWith('.mp3') || widget._link.endsWith('.flac'));
-    var miniMaxWidget = Positioned(
+    final miniMaxWidget = Positioned(
       bottom: 4,
       right: 4,
       child: IconButton(
@@ -112,7 +110,7 @@ class _PlayerState extends State<Player> {
             color: Colors.white,
           ),
           onPressed: () => SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-              .then((value) => SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]))
+              .then((value) => SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]))
               .then((value) => setState(() => fullscreen = false))),
     );
 
@@ -293,7 +291,7 @@ class _PlayerState extends State<Player> {
 
   void initAndSetDelegate(url) => Future.microtask(() => initVLC(url)).then((value) => setState(() => _delegateToVLC = true));
 
-  void startDemoTimer() => Future.delayed(const Duration(seconds: 3), widget.onMain);
+  void startDemoTimer() => Future.delayed(const Duration(seconds: 3), widget._onMain);
 }
 
 class WidgetChOff extends StatelessWidget {
