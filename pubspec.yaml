@@ -1,7 +1,7 @@
 name: ztv
 description: IPTV
 publish_to: 'none'
-version: 2.4.0+39
+version: 2.4.1+40
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
