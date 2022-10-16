@@ -5,17 +5,14 @@ if (localPropertiesFile.exists()) {
         localProperties.load(reader)
     }
 }
-
 def flutterRoot = localProperties.getProperty('flutter.sdk')
 if (flutterRoot == null) {
     throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
-
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
     flutterVersionCode = '1'
 }
-
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
     flutterVersionName = '1.0'
@@ -23,8 +20,10 @@ if (flutterVersionName == null) {
 def keystoreProperties = new Properties()
 keystoreProperties.load(rootProject.file("keystore.properties").newDataInputStream())
 def id = localProperties.getProperty("id")
+
 apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+
 android {
     signingConfigs {
         devtok {
@@ -34,13 +33,11 @@ android {
             keyPassword keystoreProperties['keyPassword']
         }
     }
+
+    sourceSets { main.java.srcDirs += 'src/main/kotlin' }
+
     compileSdkVersion 33
-
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
-
-
+    buildToolsVersion '32.1.0-rc1'
     defaultConfig {
         applicationId id
         minSdkVersion 20
@@ -54,17 +51,13 @@ android {
         release {
             shrinkResources true
             minifyEnabled true
-            ndk {
-                debugSymbolLevel 'FULL'
-            }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.devtok
         }
     }
-    buildToolsVersion '32.1.0-rc1'
-    lint {
-        disable 'InvalidPackage'
-    }
+    packagingOptions { pickFirst 'lib/**/libc++_shared.so' }
+    lint { disable 'InvalidPackage' }
+    namespace id
 }
 
 flutter {

@@ -18,12 +18,12 @@ import 'package:ztv/util/util.dart';
 import 'package:ztv/util/ztv_purchase.dart';
 import 'package:ztv/widget/history_widget.dart';
 import 'package:ztv/widget/my_playlists.dart';
-import 'package:ztv/widget/player.dart';
+import 'package:ztv/widget/player_widget.dart';
 import 'package:ztv/widget/playlist_widget.dart';
 
 import 'l10n/locale.dart';
 
-var colorCodes = {
+final colorCodes = {
   50: const Color.fromRGBO(247, 0, 15, .1),
   for (var i = 100; i < 1000; i += 100) i: Color.fromRGBO(247, 0, 15, (i + 100) / 1000)
 };
@@ -90,7 +90,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   bool? _hasIPTV;
   var purchase = ZtvPurchases();
   String? id;
-  late Database db;
+  late Database _db;
+  late SharedPreferences _sp;
   String? _logo;
   VoidCallback? _onChannelOff;
   var _myIPTVInfo = PlaylistInfo();
@@ -99,8 +100,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   @override
   void initState() {
+    _initComponents();
     checkConnection();
-    _initDB();
     super.initState();
   }
 
@@ -161,7 +162,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _uiState = UIState.PLAYER;
       stateStack.add(UIState.PLAYER);
     });
-    log(TAG, 'on tap, data=>$data');
   }
 
   void tst() {}
@@ -277,15 +277,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
         );
       case UIState.PLAYLIST:
-        return PlaylistWidget(null, _onTap, _offset, _query, _txtFieldTxt, true, db, _playListInfo, (i) => _playListInfo = i);
+        return PlaylistWidget(null, _onTap, _offset, _query, _txtFieldTxt, true, _db, _playListInfo, (i) => _playListInfo = i);
       case UIState.PLAYER:
-        return Player(_info.linkOrList.trim(), _title, _logo, db, _onChannelOff, _myIPTVInfo.isTrial, _onMain);
+        return Player(_info.linkOrList.trim(), _title, _logo, _db, _onChannelOff, _myIPTVInfo.isTrial, _onMain);
       case UIState.MY_PLAYLISTS:
-        return MyPlaylists(onPlaylistTap, db);
+        return MyPlaylists(onPlaylistTap, _db);
       case UIState.MY_IPTV:
-        return PlaylistWidget(_lans, _onTap, _offset, _query, _txtFieldTxt, false, db, _myIPTVInfo, (i) => _myIPTVInfo = i);
+        return PlaylistWidget(_lans, _onTap, _offset, _query, _txtFieldTxt, false, _db, _myIPTVInfo, (i) => _myIPTVInfo = i);
       case UIState.HISTORY:
-        return HistoryWidget(db, _historyItemTap);
+        return HistoryWidget(_db, _historyItemTap);
     }
   }
 
@@ -349,7 +349,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
-  myIPTV(bool isTrial) {
+  myIPTV(bool isTrial) async {
     _myIPTVInfo.isTrial = isTrial;
     _myIPTVInfo.filterCategory = getLocalizedCategory(_myIPTVInfo.filterCategory, AppLocalizations.of(context));
     _myIPTVInfo.filterLanguage = getLocalizedLanguage(_myIPTVInfo.filterLanguage, AppLocalizations.of(context));
@@ -361,31 +361,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     setState(() => _uiState = UIState.MY_IPTV);
     stateStack.add(UIState.MY_IPTV);
 
-    if (!isTrial)
-      SharedPreferences.getInstance().then((value) async {
-        final millis = DateTime.now().millisecondsSinceEpoch;
-        final lastCheckTime = value.getInt(LAST_SUBS_CHECK_TIME) ?? 0;
-        if (millis - lastCheckTime > 24 * 3600000) {
-          log(_HomePageState.TAG, 'check expired');
-          value.setInt(LAST_SUBS_CHECK_TIME, millis);
-          try {
-            await Firebase.initializeApp();
-          } catch (e) {
-            return;
-          }
-          if (!(await FirebaseFirestore.instance.doc('user/$id').get()).exists) {
-            stateStack.removeLast();
-            setState(() {
-              _uiState = stateStack.last;
-              _hasIPTV = false;
-              purchase.product?.status = ProductStatus.purchasable;
-            });
-            showSnack(AppLocalizations.of(context)?.subs_expired ?? 'Your subscription is expired, buy again please', 7);
-            value.remove(HAS_IPTV);
-            value.remove(LAST_SUBS_CHECK_TIME);
-          }
+    if (!isTrial) {
+      final millis = DateTime.now().millisecondsSinceEpoch;
+      final lastCheckTime = _sp.getInt(LAST_SUBS_CHECK_TIME) ?? 0;
+      if (millis - lastCheckTime > 24 * 3600000) {
+        log(_HomePageState.TAG, 'check expired');
+        _sp.setInt(LAST_SUBS_CHECK_TIME, millis);
+        if (!(await FirebaseFirestore.instance.doc('user/$id').get()).exists) {
+          stateStack.removeLast();
+          setState(() {
+            _uiState = stateStack.last;
+            _hasIPTV = false;
+            purchase.product?.status = ProductStatus.purchasable;
+          });
+          showSnack(AppLocalizations.of(context)?.subs_expired ?? 'Your subscription is expired, buy again please', 7);
+          _sp.remove(HAS_IPTV);
+          _sp.remove(LAST_SUBS_CHECK_TIME);
         }
-      });
+      }
+    }
   }
 
   void checkConnection() async {
@@ -409,8 +403,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         stateStack.add(UIState.HISTORY);
       });
 
-  void _initDB() async {
-    db = await openDatabase(p.join(await getDatabasesPath(), DB_NAME), onCreate: (db, v) {
+  void _initComponents() async {
+    // await Firebase.initializeApp();
+    _sp = await SharedPreferences.getInstance();
+    _db = await openDatabase(p.join(await getDatabasesPath(), DB_NAME), onCreate: (db, v) {
       db.execute(CREATE_TABLE_HISTORY);
       db.execute(CREATE_TABLE_PLAYLIST);
     }, version: 1);

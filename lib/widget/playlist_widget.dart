@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:sqflite/sqflite.dart';
 import 'package:ztv/model/play_list_info.dart';
 import 'package:ztv/model/playlist.dart';
+import 'package:ztv/widget/search_widget.dart';
 
 import '../model/isolate_model.dart';
 import '../util/util.dart';
@@ -43,72 +44,34 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   static const TAG = '_PlaylistState';
   late ScrollController _scrollController;
   var showSearchView = false;
-  var ctr;
   bool linkBroken = false;
 
   @override
   void initState() {
     _scrollController = ScrollController(initialScrollOffset: widget._offset);
-    ctr = TextEditingController(text: widget._query);
     onTap = widget._onTap;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    var searchActive = showSearchView || (widget._query != null && widget._query?.isNotEmpty == true);
+    final searchActive = showSearchView || (widget._query != null && widget._query?.isNotEmpty == true);
     return Scaffold(
         appBar: AppBar(leading: const BackButton(), actions: [
           const SizedBox(width: 48),
-          Expanded(
-              child: searchActive
-                  ? TextField(
-                      style: const TextStyle(color: Colors.white),
-                      onChanged: (String txt) {
-                        if (txt.trim().isNotEmpty)
-                          setState(() {
-                            widget._query = txt;
-                          });
-                      },
-                      controller: ctr,
-                      cursorColor: Colors.white,
-                      // controller: TextEditingController(text: widget._query),
-                      decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.only(top: 16),
-                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white))),
-                    )
-                  : Container()),
-          searchActive
-              ? IconButton(
-                  icon: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                  ),
-                  onPressed: () => setState(() {
-                    showSearchView = false;
-                    widget._query = null;
-                    ctr = null;
-                  }),
-                )
-              : IconButton(
-                  icon: const Icon(
-                    Icons.search,
-                    color: Colors.white,
-                  ),
-                  onPressed: () => setState(() => showSearchView = true)),
-          widget._info.hasFilter
-              ? IconButton(
-                  icon: const Icon(Icons.filter_list, color: Colors.white),
-                  onPressed: () => dialog(
-                          context,
-                          (lan, cat) => setState(() {
-                                widget._info.filterLanguage = lan;
-                                widget._info.filterCategory = cat;
-                              }), () {
-                        widget._info.filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, AppLocalizations.of(context));
-                        widget._info.filterCategory = getLocalizedCategory(ANY_CATEGORY, AppLocalizations.of(context));
-                      }))
-              : const SizedBox.shrink(),
+          Expanded(child: SearchView(searchActive, _onSearch, widget._query)),
+          if (widget._info.hasFilter)
+            IconButton(
+                icon: const Icon(Icons.filter_list, color: Colors.white),
+                onPressed: () => dialog(
+                        context,
+                        (lan, cat) => setState(() {
+                              widget._info.filterLanguage = lan;
+                              widget._info.filterCategory = cat;
+                            }), () {
+                      widget._info.filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, AppLocalizations.of(context));
+                      widget._info.filterCategory = getLocalizedCategory(ANY_CATEGORY, AppLocalizations.of(context));
+                    })),
           if (widget._hasSavePlayList)
             IconButton(
                 icon: const Icon(Icons.save, color: Colors.white),
@@ -139,15 +102,11 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
   Future<List<Channel>> getChannels(link, lans) async {
     log(_PlaylistWidgetState.TAG, 'get channels');
     if (link is List<Channel>) {
-      log(_PlaylistWidgetState.TAG, 'link is list');
-      var t1 = time;
       for (final ch in link) {
         ch.filterLanguage = widget._info.filterLanguage;
         ch.filterCategory = widget._info.filterCategory;
         _setSC(ch);
       }
-      var t2 = time;
-      log(_PlaylistWidgetState.TAG, 'iteration time=>${t2 - t1}');
       return Future.value(link);
     } else if (link.startsWith('/')) return Future.value(fileToPlaylist(link));
     final fList = <Future<http.Response>>[];
@@ -210,6 +169,12 @@ class _PlaylistWidgetState extends State<PlaylistWidget> {
       context: ctx,
       builder: (_) => ZtvDialog(submit, clear, widget._info.filterLanguage, widget._info.filterCategory,
           widget._info.dropDownLanguages, widget._info.dropDownCategories));
+
+  _onSearch(String? q) {
+    setState(() {
+      widget._query = q;
+    });
+  }
 }
 
 List<Channel> parseLans(IsolateModel model) {
@@ -329,7 +294,9 @@ PlaylistInfo parse(IsolateModel model) {
 
 bool badLink(link) =>
     link == 'https://d15690s323oesy.cloudfront.net/v1/master/9d062541f2ff39b5c0f48b743c6411d25f62fc25/UDU-Plex/158.m3u8' ||
-    link == 'https://sc.id-tv.kz/31Kanal.m3u8';
+    link == 'https://sc.id-tv.kz/31Kanal.m3u8' ||
+    link == 'https://livelist01.yowi.tv/lista/5e2db2017a8fd03f73b40ede363d1a586db4e9a6/master.m3u8' ||
+    link == 'https://livelist01.yowi.tv/lista/eb2fa68a058a701fa5bd2c80f6c8a6075896f71d/master.m3u8';
 
 setChannelProperties(String s, Channel channel, bool forLans, locs) {
   s = s.replaceAll('#EXTINF:-1 ', '');

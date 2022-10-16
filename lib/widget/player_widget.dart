@@ -83,6 +83,8 @@ class _PlayerState extends State<Player> {
         ..addOnInitListener(() {
           log(TAG, 'on init callback, is playing=>${_controller.value}');
           repeatedCheck(_controller);
+        })..addListener(() {
+          // (_controller as VlcPlayerController)
         });
     } catch (e) {
       log(_PlayerState.TAG, 'vlc e=>$e');
@@ -185,7 +187,7 @@ class _PlayerState extends State<Player> {
                               _controller = VideoPlayerController.network(loc);
                               _initializeVideoPlayerFuture = _controller.initialize();
                             });
-                          else if (statusCode == 403 || statusCode == 404 || statusCode == 401)
+                          else if (statusCode == 403 || statusCode == 404 || statusCode == 401 || statusCode == 504)
                             _off();
                           else
                             initAndSetDelegate(widget._link);
