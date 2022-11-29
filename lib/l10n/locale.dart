@@ -22,5 +22,6 @@ const LOCALES = [
   Locale('vi', ''),
   Locale('pl', ''),
   Locale('kk', ''),
-  Locale('tr', '')
+  Locale('tr', ''),
+  Locale('iw', '')
 ];

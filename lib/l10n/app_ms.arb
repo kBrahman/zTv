@@ -146,6 +146,8 @@
   "history": "Saluran yang ditonton",
   "playlist_link_broken": "Pautan senarai main rosak. Tidak boleh menyimpannya.",
   "conn_err": "Ralat sambungan, sila cuba lagi",
-"sign_in_err":"Tidak dapat log masuk, sila cuba lagi",
-"subs_expired":"Langganan anda telah tamat tempoh, sila beli lagi"
+  "sign_in_err": "Tidak dapat log masuk, sila cuba lagi",
+  "subs_expired": "Langganan anda telah tamat tempoh, sila beli lagi",
+  "purchase_err": "Tidak dapat melengkapkan pembelian anda, sila cuba lagi kemudian",
+  "invalid_link": "Pautan tidak sah"
 }

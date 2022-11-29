@@ -143,6 +143,8 @@
   "history": "Canali guardati",
   "playlist_link_broken": "Il collegamento della playlist è interrotto. Impossibile salvarlo.",
   "conn_err": "Errore di connessione, riprova per favore",
-  "sign_in_err":"Impossibile accedere, riprova per favore",
-"subs_expired":"Il tuo abbonamento è scaduto, acquista di nuovo per favore"
+  "sign_in_err": "Impossibile accedere, riprova per favore",
+  "subs_expired": "Il tuo abbonamento è scaduto, acquista di nuovo per favore",
+  "purchase_err": "Impossibile completare l'acquisto, riprova più tardi",
+  "invalid_link": "Collegamento invalido"
 }

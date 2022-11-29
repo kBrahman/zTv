@@ -145,5 +145,7 @@
   "playlist_link_broken": "El enlace de la lista de reproducción está roto. No puedo guardarlo.",
   "conn_err": "Error de conexión, inténtalo de nuevo por favor",
   "sign_in_err": "No se pudo iniciar sesión, intente nuevamente por favor",
-"subs_expired":"Su suscripción ha caducado, compre de nuevo por favor"
+  "subs_expired": "Su suscripción ha caducado, compre de nuevo por favor",
+  "purchase_err": "No se pudo completar su compra, inténtelo de nuevo más tarde por favor",
+  "invalid_link": "Enlace inválido"
 }

@@ -152,5 +152,7 @@
   "any_category": "Jede Kategorie",
   "any_lan": "Jede Sprache",
   "sign_in_err": "Anmeldung nicht möglich, bitte versuchen Sie es erneut",
-  "subs_expired": "Ihr Abonnement ist abgelaufen, bitte erneut kaufen"
+  "subs_expired": "Ihr Abonnement ist abgelaufen, bitte erneut kaufen",
+  "purchase_err": "Der Kauf konnte nicht abgeschlossen werden. Bitte versuchen Sie es später erneut",
+  "invalid_link": "Ungültiger Link"
 }

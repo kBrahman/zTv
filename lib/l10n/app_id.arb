@@ -142,5 +142,7 @@
   "playlist_link_broken": "Tautan daftar putar rusak. Tidak dapat menyimpannya.",
   "conn_err": "Kesalahan koneksi, tolong coba lagi",
   "sign_in_err": "Tidak dapat masuk, harap coba lagi",
-  "subs_expired": "Langganan Anda kedaluwarsa, tolong beli lagi"
+  "subs_expired": "Langganan Anda kedaluwarsa, tolong beli lagi",
+  "purchase_err": "Tidak dapat menyelesaikan pembelian Anda, harap coba lagi nanti",
+  "invalid_link": "Tautan tidak valid"
 }

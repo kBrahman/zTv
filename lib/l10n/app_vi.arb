@@ -143,6 +143,8 @@
   "conn_err": "Lỗi kết nối, vui lòng thử lại",
   "any_lan": "Mọi ngôn ngữ",
   "any_category": "Bất kỳ danh mục",
-"sign_in_err":"Không thể đăng nhập, vui lòng thử lại",
-"subs_expired":"Đăng ký của bạn đã hết hạn, vui lòng mua lại"
+  "sign_in_err": "Không thể đăng nhập, vui lòng thử lại",
+  "subs_expired": "Đăng ký của bạn đã hết hạn, vui lòng mua lại",
+  "purchase_err": "Không thể hoàn tất giao dịch mua của bạn, vui lòng thử lại sau",
+  "invalid_link": "Liên kết không hợp lệ"
 }

@@ -150,5 +150,7 @@
   "any_category": "Dowolna kategoria",
   "any_lan": "Dowolny język",
   "sign_in_err": "Nie udało się zalogować, spróbuj ponownie",
-  "subs_expired": "Twoja subskrypcja wygasła, kup ponownie, proszę"
+  "subs_expired": "Twoja subskrypcja wygasła, kup ponownie, proszę",
+  "purchase_err": "Nie można sfinalizować zakupu, spróbuj ponownie później",
+  "invalid_link": "Niepoprawny link"
 }

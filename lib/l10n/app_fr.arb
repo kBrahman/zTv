@@ -151,5 +151,7 @@
   "playlist_link_broken": "Le lien de la liste de lecture est rompu. Impossible de le sauvegarder.",
   "conn_err": "Erreur de connexion, réessayez s'il vous plaît",
 "sign_in_err":"Impossible de se connecter, veuillez réessayer s'il vous plaît",
-"subs_expired":"Votre abonnement est expiré, achetez à nouveau s'il vous plaît"
+"subs_expired":"Votre abonnement est expiré, achetez à nouveau s'il vous plaît",
+"purchase_err":"Impossible de terminer votre achat, réessayez plus tard s'il vous plaît",
+"invalid_link":"Lien invalide"
 }
