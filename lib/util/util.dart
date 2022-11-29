@@ -1,8 +1,9 @@
 // ignore_for_file: constant_identifier_names, avoid_print
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
-const TAG = 'TOP';
 const UNDEFINED = 'Undefined';
 const LAST_SUBS_CHECK_TIME = 'last_subs_check_time';
 const HAS_IPTV = 'has_iptv';
@@ -143,6 +144,7 @@ const COLUMN_LOGO = 'logo';
 const COLUMN_TIME = 'time';
 const COLUMN_ID = 'id';
 const CHANNEL_COUNT = "6000";
+Future<Database>? dbFuture;
 
 log(String tag, String? msg) => print('$tag:$msg');
 
@@ -405,3 +407,8 @@ String getLocalizedCategory(String? s, AppLocalizations? of) {
       return s!;
   }
 }
+
+Future<Database> getDB() async => dbFuture ??= openDatabase(join(await getDatabasesPath(), DB_NAME), onCreate: (db, v) {
+      db.execute(CREATE_TABLE_HISTORY);
+      db.execute(CREATE_TABLE_PLAYLIST);
+    }, version: 1);

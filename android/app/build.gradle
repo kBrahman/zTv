@@ -40,7 +40,7 @@ android {
     buildToolsVersion '32.1.0-rc1'
     defaultConfig {
         applicationId id
-        minSdkVersion 20
+        minSdkVersion 21
         targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -55,9 +55,14 @@ android {
             signingConfig signingConfigs.devtok
         }
     }
-    packagingOptions { pickFirst 'lib/**/libc++_shared.so' }
+    packagingOptions {
+        jniLibs {
+            pickFirsts += ['lib/**/libc++_shared.so']
+        }
+    }
     lint { disable 'InvalidPackage' }
-    namespace id
+    namespace 'zhet.ztv'
+//    namespace id
 }
 
 flutter {
