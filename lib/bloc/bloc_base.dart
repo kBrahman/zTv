@@ -20,13 +20,14 @@ abstract class BaseBloc {
   static const _TAG = 'BaseBloc';
   static Future<IsolateRes>? myIptvIsoRes;
   static Future<IsolateRes>? isoRes;
-  static var _snackController = StreamController<ToastAction>();
+  static var _globalController = StreamController<GlobalAction>();
   static const _platform = MethodChannel('ztv.channel/app');
   static bool connectedToInet = true;
 
-  Stream<ToastAction> get snackStream => _snackController.stream;
 
-  static Sink<ToastAction> get snackSink => _snackController.sink;
+  Stream<GlobalAction> get globalStream => _globalController.stream;
+
+  static Sink<GlobalAction> get globalSink => _globalController.sink;
   static late final String myIPTVLink;
   static late final String lansLink;
 
@@ -44,14 +45,14 @@ abstract class BaseBloc {
 
   securityOn() => _platform.invokeMethod('securityOn');
 
-  static void resnack() {
-    _snackController = StreamController<ToastAction>();
+  static void reset() {
+    _globalController = StreamController<GlobalAction>();
   }
 
   static onErr(e) {
     if (e is ClientException) {
       connectedToInet = false;
-      snackSink.add(ToastAction.NO_INET);
+      globalSink.add(GlobalAction.NO_INET);
     }
     return const IsolateRes([], {}, {});
   }
@@ -63,7 +64,7 @@ abstract class BaseBloc {
       case "onAvailable":
         connectedToInet = true;
         if ((await myIptvIsoRes)?.channels.isEmpty == true) myIptvIsoRes = loadChannels(myIPTVLink, lansLink).catchError(onErr);
-        // snackSink.add(ToastAction.ON_INET);
+        globalSink.add(GlobalAction.ON_INET);
         break;
       case "onLost":
         log(_TAG, 'on lost flutter');

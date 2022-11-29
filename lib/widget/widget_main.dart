@@ -7,7 +7,7 @@ import 'package:ztv/bloc/bloc_main.dart';
 import 'package:ztv/bloc/bloc_player.dart';
 import 'package:ztv/widget/widget_history.dart';
 import 'package:ztv/widget/widget_my_playlists.dart';
-import 'package:ztv/widget/widget_player2.dart';
+import 'package:ztv/widget/widget_player.dart';
 import 'package:ztv/widget/widget_playlist.dart';
 
 import '../bloc/bloc_base.dart';
@@ -21,8 +21,9 @@ class MainWidget extends StatelessWidget {
   static const _TAG = 'MainWidget';
   final MainBloc _mainBloc;
   String? _title;
+  GlobalKey<ScaffoldMessengerState> _messengerKey;
 
-  MainWidget(this._mainBloc, {Key? key}) : super(key: key);
+  MainWidget(this._mainBloc, this._messengerKey, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -92,28 +93,34 @@ class MainWidget extends StatelessWidget {
 
   _snack(ctx) {
     log(_TAG, '_snack');
-    BaseBloc.resnack();
-    _mainBloc.snackStream.listen((action) {
+    BaseBloc.reset();
+    _mainBloc.globalStream.listen((action) {
       log(_TAG, action.toString());
       final l10n = AppLocalizations.of(ctx);
       switch (action) {
-        case ToastAction.SIGN_IN_ERR:
-          _showSnack(l10n?.sign_in_err ?? 'Could not sign in, try again please', 3, ctx);
+        case GlobalAction.SIGN_IN_ERR:
+          _showSnack(l10n?.sign_in_err ?? 'Could not sign in, try again please', 3);
           break;
-        case ToastAction.SUB_EXPIRED:
-          _showSnack(l10n?.subs_expired ?? 'Your subscription is expired, buy again please', 7, ctx);
+        case GlobalAction.SUB_EXPIRED:
+          _showSnack(l10n?.subs_expired ?? 'Your subscription is expired, buy again please', 7);
           break;
-        case ToastAction.NO_INET:
+        case GlobalAction.NO_INET:
+          _showSnack(l10n?.no_inet ?? 'No internet access', 2);
           break;
-        case ToastAction.PURCHASE_ERR:
-          _showSnack(l10n?.purchase_err ?? 'Could not complete your purchase, try again later please', 2, ctx);
+        case GlobalAction.PURCHASE_ERR:
+          _showSnack(l10n?.purchase_err ?? 'Could not complete your purchase, try again later please', 2);
+          break;
+        case GlobalAction.ON_INET:
+          _mainBloc.cmdSink.add(Command.SHOW_BUY_IPTV);
       }
     });
   }
 
-  void _showSnack(String s, dur, ctx) {
+  void _showSnack(String s, dur) {
+    log(_TAG, '_showSnack');
     final snackBar = SnackBar(content: Text(s), duration: Duration(seconds: dur));
-    ScaffoldMessenger.of(ctx).showSnackBar(snackBar);
+    _messengerKey.currentState?.showSnackBar(snackBar);
+    // ScaffoldMessenger.of(ctx).showSnackBar(snackBar);
   }
 
   void _browse() async {
@@ -129,7 +136,7 @@ class MainWidget extends StatelessWidget {
 
   _myIPTV(context, bool isTrial) async {
     if (!BaseBloc.connectedToInet) {
-      BaseBloc.snackSink.add(ToastAction.NO_INET);
+      BaseBloc.globalSink.add(GlobalAction.NO_INET);
       return;
     }
     if (await Navigator.push(
@@ -143,7 +150,9 @@ class MainWidget extends StatelessWidget {
     final link = _mainBloc.txtCtr.text;
     log(_TAG, 'play=>$link');
     if (link.isEmpty || link == BaseBloc.myIPTVLink) return;
-    if (!link.startsWith(RegExp(r'https://?|/data/user/0/|rtmp://')))
+    if (!BaseBloc.connectedToInet)
+      BaseBloc.globalSink.add(GlobalAction.NO_INET);
+    else if (!link.startsWith(RegExp(r'https://?|/data/user/0/|rtmp://')))
       _mainBloc.cmdSink.add(Command.LINK_INVALID);
     else if (_isPlaylistLink(link))
       Navigator.push(context, MaterialPageRoute(builder: (context) => PlaylistWidget(PlaylistBloc(link), link, true, false)));
@@ -160,4 +169,4 @@ class MainWidget extends StatelessWidget {
   String _getTitle(String link) => link.substring(link.lastIndexOf('/') + 1);
 }
 
-enum ToastAction { SIGN_IN_ERR, SUB_EXPIRED, NO_INET, PURCHASE_ERR }
+enum GlobalAction { SIGN_IN_ERR, SUB_EXPIRED, NO_INET, PURCHASE_ERR, ON_INET }

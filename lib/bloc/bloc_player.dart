@@ -47,7 +47,7 @@ class PlayerBloc extends BaseBloc {
     if (url.startsWith('rtmp://') || delegate) {
       log(_TAG, 'trying with VLC');
       _vlcCtr = VlcPlayerController.network(url, autoPlay: true);
-      yield data = PlayerData(state: PlayerState.VIDEO, vCtr: _vlcCtr, aspectRatio: defaultRatio, isTrial: isTrial);
+      yield data = PlayerData(state: PlayerState.VIDEO, vCtr: _vlcCtr, aspectRatio: defaultRatio, isTrial: true);
       await for (final t in Stream.periodic(const Duration(seconds: 1), (i) => i)) {
         log(_TAG, 'ctr=>$_vlcCtr');
         if (_vlcCtr?.value.playingState == PlayingState.stopped || t == 13) {
@@ -58,7 +58,7 @@ class PlayerBloc extends BaseBloc {
           final aspectRatio = _vlcCtr?.value.aspectRatio == 0 ? defaultRatio : _vlcCtr?.value.aspectRatio;
           // await Future.delayed(const Duration(seconds: 5));
           log(_TAG, '5 end');
-          yield data = data.copyWith(aspectRatio: aspectRatio);
+          yield data = data.copyWith(aspectRatio: aspectRatio, isTrial: isTrial);
           break;
         }
       }

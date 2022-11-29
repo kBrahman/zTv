@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ztv/bloc/bloc_base.dart';
 import 'package:ztv/bloc/bloc_playlist.dart';
 import 'package:ztv/widget/widget_main.dart';
-import 'package:ztv/widget/widget_player2.dart';
+import 'package:ztv/widget/widget_player.dart';
 
 import '../bloc/bloc_player.dart';
 import '../model/channel.dart';
@@ -24,7 +24,7 @@ class ChannelWidget extends StatelessWidget {
     return GestureDetector(
         onTap: () async {
           if (!BaseBloc.connectedToInet) {
-            BaseBloc.snackSink.add(ToastAction.NO_INET);
+            BaseBloc.globalSink.add(GlobalAction.NO_INET);
             return;
           }
           final bloc = PlayerBloc(_ch.url, _isTrial, _ch.title, _ch.logo);

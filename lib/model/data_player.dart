@@ -21,7 +21,13 @@ class PlayerData {
       this.isTrial = true});
 
   PlayerData copyWith(
-      {bool? fullscreen, bool? showControls, bool? pop, double? aspectRatio, double? progress, PlayerState? state}) {
+      {bool? fullscreen,
+      bool? showControls,
+      bool? pop,
+      double? aspectRatio,
+      double? progress,
+      PlayerState? state,
+      bool? isTrial}) {
     return PlayerData(
         state: state ?? this.state,
         vCtr: vCtr,
@@ -29,7 +35,8 @@ class PlayerData {
         fullscreen: fullscreen ?? this.fullscreen,
         showControls: showControls ?? this.showControls,
         pop: pop ?? this.pop,
-        progress: progress ?? this.progress);
+        progress: progress ?? this.progress,
+        isTrial: isTrial ?? this.isTrial);
   }
 
   @override

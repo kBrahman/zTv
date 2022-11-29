@@ -36,20 +36,17 @@ class MainBloc extends BaseBloc {
   }
 
   Stream<PurchaseData?> _getStream() async* {
-    late final PurchasableProduct product;
+    PurchasableProduct? product;
     _sp = await SharedPreferences.getInstance();
     PurchaseData? data;
     if (_sp.getBool(HAS_IPTV) == true)
       data = const PurchaseData(hasIPTV: true);
-    else if (await _iapConnection.isAvailable()) {
-      const ids = <String>{'ztv_channels'};
-      final response = await _iapConnection.queryProductDetails(ids);
-      for (final element in response.notFoundIDs) log(_TAG, 'Purchase $element not found');
-      final products = response.productDetails.map((e) => PurchasableProduct(e)).toList();
-      product = products.first;
-      data = PurchaseData(price: product.price);
+    else {
+      product = await getProduct();
+      if (product != null) data = PurchaseData(price: product.price);
     }
     yield data;
+    log(_TAG, 'yield=>$data');
     await for (final cmd in _controller.stream) {
       log(_TAG, 'cmd=>$cmd');
       switch (cmd) {
@@ -58,18 +55,21 @@ class MainBloc extends BaseBloc {
           break;
         case Command.BUY_IPTV:
           if (!BaseBloc.connectedToInet) {
-            BaseBloc.snackSink.add(ToastAction.NO_INET);
+            BaseBloc.globalSink.add(GlobalAction.NO_INET);
             yield data;
             break;
           }
           yield data = data?.copyWith(processing: true);
-          yield data = await _buyIptv(data, product);
+          yield data = await _buyIptv(data, product!);
           break;
         case Command.MY_IPTV:
           yield const PurchaseData(hasIPTV: true);
           break;
         case Command.SHOW_BUY_IPTV:
-          yield PurchaseData(hasIPTV: false, price: product.price);
+          log(_TAG, 'show buy, product=>$product');
+          product ??= await getProduct();
+          if (product == null) yield null;
+          yield PurchaseData(hasIPTV: false, price: product!.price);
           break;
         case Command.ANIM:
           yield data = data?.copyWith(animate: true, scale: 2);
@@ -77,25 +77,6 @@ class MainBloc extends BaseBloc {
           yield data = data?.copyWith(scale: 1);
       }
     }
-  }
-
-  PurchaseData? _play(PurchaseData? data) {
-    // if (_playListInfo.linkOrList == null || _playListInfo.linkOrList.trim().isEmpty) return;
-    // if (_connectedToInet &&
-    //     (_playListInfo.linkOrList.endsWith('=m3u') ||
-    //         _playListInfo.linkOrList.contains('download.php?id') ||
-    //         _playListInfo.linkOrList.endsWith('.m3u')))
-    //   setState(() {
-    //     _playListInfo.filterCategory = getLocalizedCategory(_playListInfo.filterCategory, AppLocalizations.of(context));
-    //     _playListInfo.filterLanguage = getLocalizedLanguage(_playListInfo.filterLanguage, AppLocalizations.of(context));
-    //     _uiState = UIState.PLAYLIST;
-    //     stateStack.add(UIState.PLAYLIST);
-    //   });
-    // else if (_connectedToInet || isLocalFile(_playListInfo.linkOrList))
-    //   setState(() {
-    //     _title = '';
-    //     _uiState = UIState.PLAYER;
-    //     stateStack.add(UIState.PLAYER);
   }
 
   Future<PurchaseData?> _buyIptv(PurchaseData? data, PurchasableProduct product) async {
@@ -109,12 +90,12 @@ class MainBloc extends BaseBloc {
         _sp.setBool(HAS_IPTV, true);
         return data?.copyWith(hasIPTV: true, processing: false);
       } else if (doc.exists)
-        BaseBloc.snackSink.add(ToastAction.SUB_EXPIRED);
+        BaseBloc.globalSink.add(GlobalAction.SUB_EXPIRED);
       else
         buy(login!, product);
     } catch (e) {
       log(_TAG, 'e=>$e');
-      BaseBloc.snackSink.add(ToastAction.SIGN_IN_ERR);
+      BaseBloc.globalSink.add(GlobalAction.SIGN_IN_ERR);
       return data?.copyWith(processing: false);
     }
     return data;
@@ -136,7 +117,7 @@ class MainBloc extends BaseBloc {
   void _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) => purchaseDetailsList.forEach(_handlePurchase);
 
   void _updateStreamOnError(error) {
-    BaseBloc.snackSink.add(ToastAction.PURCHASE_ERR);
+    BaseBloc.globalSink.add(GlobalAction.PURCHASE_ERR);
     cmdSink.add(Command.SHOW_BUY_IPTV);
     log(_TAG, 'err=>$error');
   }
@@ -151,7 +132,7 @@ class MainBloc extends BaseBloc {
       });
     } else if (purchaseDetails.status == PurchaseStatus.error || purchaseDetails.status == PurchaseStatus.canceled) {
       log(_TAG, 'pErr=>${purchaseDetails.error?.code}');
-      if (purchaseDetails.error?.code != 'purchase_error') BaseBloc.snackSink.add(ToastAction.PURCHASE_ERR);
+      if (purchaseDetails.error?.code != 'purchase_error') BaseBloc.globalSink.add(GlobalAction.PURCHASE_ERR);
       cmdSink.add(Command.SHOW_BUY_IPTV);
     }
     if (purchaseDetails.pendingCompletePurchase) {
@@ -161,6 +142,13 @@ class MainBloc extends BaseBloc {
   }
 
   void _completePurchase(PurchaseDetails purchaseDetails) => _iapConnection.completePurchase(purchaseDetails);
+
+  Future<PurchasableProduct?> getProduct() async {
+    final ProductDetailsResponse? response;
+    if (!(await _iapConnection.isAvailable()) ||
+        (response = await _iapConnection.queryProductDetails({'ztv_channels'})).notFoundIDs.isNotEmpty) return null;
+    return response.productDetails.map((e) => PurchasableProduct(e)).toList(growable: false).first;
+  }
 }
 
 enum Command { BUY_IPTV, MY_IPTV, ANIM, SHOW_BUY_IPTV, LINK_INVALID }

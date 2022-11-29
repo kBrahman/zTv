@@ -34,13 +34,13 @@ class Ztv extends StatelessWidget {
 
   final String? _playlist;
   final String? _lans;
+  final messengerKey = GlobalKey<ScaffoldMessengerState>();
 
-  const Ztv(this._playlist, this._lans, {Key? key}) : super(key: key);
+   Ztv(this._playlist, this._lans, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     log(_TAG, 'build');
-    final messengerKey = GlobalKey<ScaffoldMessengerState>();
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         localizationsDelegates: const [
@@ -62,7 +62,7 @@ class Ztv extends StatelessWidget {
 
   _initHome(BuildContext context, GlobalKey<ScaffoldMessengerState> messengerKey) {
     // if (!_snackReady) _snack(context, messengerKey);
-    return MainWidget(MainBloc());
+    return MainWidget(MainBloc(),messengerKey);
   }
 }
 

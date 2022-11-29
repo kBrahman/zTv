@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ztv/bloc/bloc_player.dart';
-import 'package:ztv/widget/widget_player2.dart';
+import 'package:ztv/widget/widget_player.dart';
 
 class HistoryItem extends StatelessWidget {
   final String _title;
