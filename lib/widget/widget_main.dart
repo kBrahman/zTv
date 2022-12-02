@@ -64,7 +64,8 @@ class MainWidget extends StatelessWidget {
                         scale: data.scale,
                         child: TextButton(
                             style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
-                            onPressed: () => data.hasIPTV ? _myIPTV(context, false) : _mainBloc.cmdSink.add(Command.BUY_IPTV),
+                            onPressed: () async =>
+                                data.hasIPTV ? _myIPTV(context, false) : _mainBloc.cmdSink.add(await _googleOrApple(context)),
                             child: Text(data.hasIPTV ? l10n?.my_iptv ?? 'MY IPTV' : l10n?.buy_iptv ?? 'BUY IPTV',
                                 style: const TextStyle(color: Colors.white)))),
                     if (!data.hasIPTV)
@@ -167,6 +168,20 @@ class MainWidget extends StatelessWidget {
   bool _isPlaylistLink(String link) => link.endsWith('.m3u') || link.endsWith('download.php?id') || link.endsWith('=m3u');
 
   String _getTitle(String link) => link.substring(link.lastIndexOf('/') + 1);
+
+  Future<Command?> _googleOrApple(BuildContext ctx) => showDialog<Command>(
+      context: ctx,
+      builder: (ctx) => AlertDialog(
+          title: Text(AppLocalizations.of(ctx)?.need_sign_in ?? 'We need to check if you already bought this service',
+              style: TextStyle(fontSize: 15)),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            SignInButton(Buttons.Apple, onPressed: () => Navigator()),
+            SizedBox(height: 8),
+            SignInButton(
+              Buttons.Google,
+              onPressed: () => googleSignIn(),
+            )
+          ])));
 }
 
 enum GlobalAction { SIGN_IN_ERR, SUB_EXPIRED, NO_INET, PURCHASE_ERR, ON_INET }
