@@ -47,6 +47,7 @@ abstract class BaseBloc {
 
   static void reset() {
     _globalController = StreamController<GlobalAction>();
+    _globalController.hasListener;
   }
 
   static onErr(e) {

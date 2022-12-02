@@ -146,7 +146,8 @@ class MainBloc extends BaseBloc {
   Future<PurchasableProduct?> getProduct() async {
     final ProductDetailsResponse? response;
     if (!(await _iapConnection.isAvailable()) ||
-        (response = await _iapConnection.queryProductDetails({'ztv_channels'})).notFoundIDs.isNotEmpty) return null;
+        (response = await _iapConnection.queryProductDetails({'ztv_channels', 'ztv_channels_product'})).notFoundIDs.length==2)
+      return null;
     return response.productDetails.map((e) => PurchasableProduct(e)).toList(growable: false).first;
   }
 }

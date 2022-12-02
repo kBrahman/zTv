@@ -27,7 +27,7 @@ class MainWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _snack(context);
+    _initGlobalEventListener(context);
     return Scaffold(
         appBar: AppBar(title: const Text('zTv'), actions: [
           IconButton(
@@ -91,7 +91,7 @@ class MainWidget extends StatelessWidget {
         floatingActionButton: FloatingActionButton(onPressed: () => _play(context), child: const Icon(Icons.play_arrow)));
   }
 
-  _snack(ctx) {
+  _initGlobalEventListener(ctx) {
     log(_TAG, '_snack');
     BaseBloc.reset();
     _mainBloc.globalStream.listen((action) {
