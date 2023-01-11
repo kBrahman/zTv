@@ -14,13 +14,14 @@ class PurchaseData {
       this.scale = 1,
       this.linkInvalid = false});
 
-  PurchaseData copyWith({bool? processing, bool? hasIPTV, bool? animate, double? scale, bool? linkInvalid}) => PurchaseData(
-      hasIPTV: hasIPTV ?? this.hasIPTV,
-      price: price,
-      processing: processing ?? this.processing,
-      animate: animate ?? this.animate,
-      scale: scale ?? this.scale,
-      linkInvalid: linkInvalid ?? this.linkInvalid);
+  PurchaseData copyWith({bool? processing, bool? hasIPTV, bool? animate, double? scale, bool? linkInvalid, String? price}) =>
+      PurchaseData(
+          hasIPTV: hasIPTV ?? this.hasIPTV,
+          processing: processing ?? this.processing,
+          animate: animate ?? this.animate,
+          scale: scale ?? this.scale,
+          linkInvalid: linkInvalid ?? this.linkInvalid,
+          price: price ?? this.price);
 
   @override
   String toString() {

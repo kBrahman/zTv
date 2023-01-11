@@ -2,8 +2,10 @@
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:path/path.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+const LOGIN = 'login';
 const UNDEFINED = 'Undefined';
 const LAST_SUBS_CHECK_TIME = 'last_subs_check_time';
 const HAS_IPTV = 'has_iptv';
@@ -144,7 +146,8 @@ const COLUMN_LOGO = 'logo';
 const COLUMN_TIME = 'time';
 const COLUMN_ID = 'id';
 const CHANNEL_COUNT = "6000";
-Future<Database>? dbFuture;
+Future<Database>? _dbFuture;
+Future<SharedPreferences>? _spFuture;
 
 log(String tag, String? msg) => print('$tag:$msg');
 
@@ -408,7 +411,9 @@ String getLocalizedCategory(String? s, AppLocalizations? of) {
   }
 }
 
-Future<Database> getDB() async => dbFuture ??= openDatabase(join(await getDatabasesPath(), DB_NAME), onCreate: (db, v) {
+Future<Database> getDB() async => _dbFuture ??= openDatabase(join(await getDatabasesPath(), DB_NAME), onCreate: (db, v) {
       db.execute(CREATE_TABLE_HISTORY);
       db.execute(CREATE_TABLE_PLAYLIST);
     }, version: 1);
+
+Future<SharedPreferences> getSP() => _spFuture ??= SharedPreferences.getInstance();

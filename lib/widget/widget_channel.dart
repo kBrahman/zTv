@@ -20,11 +20,11 @@ class ChannelWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const img = Image(image: AssetImage('icon/ztv.jpg'));
+    const img = Image(image: AssetImage('assets/icon/ztv.jpg'));
     return GestureDetector(
         onTap: () async {
           if (!BaseBloc.connectedToInet) {
-            BaseBloc.globalSink.add(GlobalAction.NO_INET);
+            BaseBloc.globalSink.add(GlobalEvent.NO_INET);
             return;
           }
           final bloc = PlayerBloc(_ch.url, _isTrial, _ch.title, _ch.logo);

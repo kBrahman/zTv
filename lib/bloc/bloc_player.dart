@@ -36,7 +36,7 @@ class PlayerBloc extends BaseBloc {
     }
     log(_TAG, 'url=>$url');
     _isAudio = _isAudioLink(url);
-    stream = _getStream(url: url, title: title, logo: logo, isTrial: isTrial);
+    stream = _getStream(url: url, title: title, logo: logo, delegate: _delegate(url), isTrial: isTrial);
   }
 
   bool _isAudioLink(String link) =>
@@ -44,7 +44,7 @@ class PlayerBloc extends BaseBloc {
 
   Stream<PlayerData> _getStream({required String url, title = '', String? logo, delegate = false, required bool isTrial}) async* {
     PlayerData data;
-    if (url.startsWith('rtmp://') || delegate) {
+    if (delegate) {
       log(_TAG, 'trying with VLC');
       _vlcCtr = VlcPlayerController.network(url, autoPlay: true);
       yield data = PlayerData(state: PlayerState.VIDEO, vCtr: _vlcCtr, aspectRatio: defaultRatio, isTrial: true);
@@ -152,6 +152,9 @@ class PlayerBloc extends BaseBloc {
 
   _saveToDB(String url, title, logo) => getDB().then(
       (db) => db.insert('history', {'title': title, 'link': url, 'logo': logo}, conflictAlgorithm: ConflictAlgorithm.abort));
+
+  _delegate(String url) =>
+      url.startsWith('rtmp://') || url == 'https://cdn.smartstream.video/smartstream-us/jonakk/jonakk/playlist.m3u8';
 }
 
 class _ControlVisibilityTimeout {

@@ -8,6 +8,7 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.net.SSLCertificateSocketFactory;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,7 +17,6 @@ import androidx.core.content.ContextCompat;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 
-import io.flutter.Log;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodChannel;
@@ -58,12 +58,14 @@ public class MainActivity extends FlutterActivity {
     }
 
     private void checkConn(Context context, MethodChannel.Result result) {
+        Log.i(TAG, "checkConn: ");
         NetworkRequest networkRequest = new NetworkRequest.Builder()
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                 .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
                 .build();
         ConnectivityManager cm = ContextCompat.getSystemService(context, ConnectivityManager.class);
+        Log.i(TAG, "checkConn: cm " + cm);
         if (cm == null)
             result.success(false);
         else {

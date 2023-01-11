@@ -49,13 +49,13 @@ class MainWidget extends StatelessWidget {
                 if (data != null)
                   Column(children: [
                     Padding(
-                        padding: const EdgeInsets.only(left: 4, right: 4),
+                        padding: const EdgeInsets.only(left: 16, right: 4),
                         child: Text(
                             data.processing
                                 ? l10n?.processing ?? 'Processing...'
                                 : !data.hasIPTV
                                     ? l10n?.get_iptv_txt(data.price!, CHANNEL_COUNT) ??
-                                        'Get $CHANNEL_COUNT channels only for ${data.price!}/year'
+                                        'Get access to $CHANNEL_COUNT channels only for ${data.price!}/year'
                                     : '',
                             style: const TextStyle(fontSize: 14))),
                     AnimatedScale(
@@ -65,7 +65,7 @@ class MainWidget extends StatelessWidget {
                         child: TextButton(
                             style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
                             onPressed: () async =>
-                                data.hasIPTV ? _myIPTV(context, false) : _mainBloc.cmdSink.add(await _googleOrApple(context)),
+                                data.hasIPTV ? _myIPTV(context, false) : _mainBloc.cmdSink.add(Command.BUY_IPTV),
                             child: Text(data.hasIPTV ? l10n?.my_iptv ?? 'MY IPTV' : l10n?.buy_iptv ?? 'BUY IPTV',
                                 style: const TextStyle(color: Colors.white)))),
                     if (!data.hasIPTV)
@@ -94,24 +94,24 @@ class MainWidget extends StatelessWidget {
 
   _initGlobalEventListener(ctx) {
     log(_TAG, '_snack');
-    BaseBloc.reset();
+    if (BaseBloc.hasListener) return;
     _mainBloc.globalStream.listen((action) {
       log(_TAG, action.toString());
       final l10n = AppLocalizations.of(ctx);
       switch (action) {
-        case GlobalAction.SIGN_IN_ERR:
+        case GlobalEvent.SIGN_IN_ERR:
           _showSnack(l10n?.sign_in_err ?? 'Could not sign in, try again please', 3);
           break;
-        case GlobalAction.SUB_EXPIRED:
+        case GlobalEvent.SUB_EXPIRED:
           _showSnack(l10n?.subs_expired ?? 'Your subscription is expired, buy again please', 7);
           break;
-        case GlobalAction.NO_INET:
+        case GlobalEvent.NO_INET:
           _showSnack(l10n?.no_inet ?? 'No internet access', 2);
           break;
-        case GlobalAction.PURCHASE_ERR:
+        case GlobalEvent.PURCHASE_ERR:
           _showSnack(l10n?.purchase_err ?? 'Could not complete your purchase, try again later please', 2);
           break;
-        case GlobalAction.ON_INET:
+        case GlobalEvent.ON_INET:
           _mainBloc.cmdSink.add(Command.SHOW_BUY_IPTV);
       }
     });
@@ -137,7 +137,7 @@ class MainWidget extends StatelessWidget {
 
   _myIPTV(context, bool isTrial) async {
     if (!BaseBloc.connectedToInet) {
-      BaseBloc.globalSink.add(GlobalAction.NO_INET);
+      BaseBloc.globalSink.add(GlobalEvent.NO_INET);
       return;
     }
     if (await Navigator.push(
@@ -152,7 +152,7 @@ class MainWidget extends StatelessWidget {
     log(_TAG, 'play=>$link');
     if (link.isEmpty || link == BaseBloc.myIPTVLink) return;
     if (!BaseBloc.connectedToInet)
-      BaseBloc.globalSink.add(GlobalAction.NO_INET);
+      BaseBloc.globalSink.add(GlobalEvent.NO_INET);
     else if (!link.startsWith(RegExp(r'https://?|/data/user/0/|rtmp://')))
       _mainBloc.cmdSink.add(Command.LINK_INVALID);
     else if (_isPlaylistLink(link))
@@ -168,20 +168,6 @@ class MainWidget extends StatelessWidget {
   bool _isPlaylistLink(String link) => link.endsWith('.m3u') || link.endsWith('download.php?id') || link.endsWith('=m3u');
 
   String _getTitle(String link) => link.substring(link.lastIndexOf('/') + 1);
-
-  Future<Command?> _googleOrApple(BuildContext ctx) => showDialog<Command>(
-      context: ctx,
-      builder: (ctx) => AlertDialog(
-          title: Text(AppLocalizations.of(ctx)?.need_sign_in ?? 'We need to check if you already bought this service',
-              style: TextStyle(fontSize: 15)),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            SignInButton(Buttons.Apple, onPressed: () => Navigator()),
-            SizedBox(height: 8),
-            SignInButton(
-              Buttons.Google,
-              onPressed: () => googleSignIn(),
-            )
-          ])));
 }
 
-enum GlobalAction { SIGN_IN_ERR, SUB_EXPIRED, NO_INET, PURCHASE_ERR, ON_INET }
+enum GlobalEvent { SIGN_IN_ERR, SUB_EXPIRED, NO_INET, PURCHASE_ERR, ON_INET }

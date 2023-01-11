@@ -20,14 +20,16 @@ abstract class BaseBloc {
   static const _TAG = 'BaseBloc';
   static Future<IsolateRes>? myIptvIsoRes;
   static Future<IsolateRes>? isoRes;
-  static var _globalController = StreamController<GlobalAction>();
+  static final _globalController = StreamController<GlobalEvent>();
   static const _platform = MethodChannel('ztv.channel/app');
   static bool connectedToInet = true;
 
+  Stream<GlobalEvent> get globalStream => _globalController.stream;
 
-  Stream<GlobalAction> get globalStream => _globalController.stream;
+  static get hasListener => _globalController.hasListener;
 
-  static Sink<GlobalAction> get globalSink => _globalController.sink;
+  static Sink<GlobalEvent> get globalSink => _globalController.sink;
+
   static late final String myIPTVLink;
   static late final String lansLink;
 
@@ -35,7 +37,10 @@ abstract class BaseBloc {
     myIPTVLink = link;
     lansLink = lans;
     _platform.setMethodCallHandler(nativeMethodCallHandler);
-    connectedToInet = await _platform.invokeMethod('checkConn');
+    _platform.invokeMethod('checkConn').then((value) {
+      connectedToInet = value;
+      log(_TAG, 'check conn, then v=>$value');
+    });
     Firebase.initializeApp();
     myIptvIsoRes = loadChannels(link, lans).catchError(onErr);
     log(_TAG, 'init');
@@ -45,15 +50,11 @@ abstract class BaseBloc {
 
   securityOn() => _platform.invokeMethod('securityOn');
 
-  static void reset() {
-    _globalController = StreamController<GlobalAction>();
-    _globalController.hasListener;
-  }
-
   static onErr(e) {
     if (e is ClientException) {
       connectedToInet = false;
-      globalSink.add(GlobalAction.NO_INET);
+      globalSink.add(GlobalEvent.NO_INET);
+      log(_TAG, 'on err, e=>${e.message}');
     }
     return const IsolateRes([], {}, {});
   }
@@ -65,7 +66,7 @@ abstract class BaseBloc {
       case "onAvailable":
         connectedToInet = true;
         if ((await myIptvIsoRes)?.channels.isEmpty == true) myIptvIsoRes = loadChannels(myIPTVLink, lansLink).catchError(onErr);
-        globalSink.add(GlobalAction.ON_INET);
+        globalSink.add(GlobalEvent.ON_INET);
         break;
       case "onLost":
         log(_TAG, 'on lost flutter');

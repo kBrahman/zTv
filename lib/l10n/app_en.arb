@@ -154,6 +154,5 @@
   "sign_in_err": "Could not sign in, try again please",
   "subs_expired": "Your subscription is expired, buy again please",
   "purchase_err": "Could not complete your purchase, try again later please",
-  "invalid_link": "Invalid link",
-  "need_sign_in ": "We need to check if you already bought this service"
+  "invalid_link": "Invalid link"
 }

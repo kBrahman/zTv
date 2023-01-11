@@ -26,7 +26,7 @@ void main() async {
   final lans = props['lans'];
   BaseBloc.init(playlist, lans);
   runApp(Ztv(playlist, lans));
-  log(TAG, 'main');
+  log(TAG, 'main, list=>$playlist');
 }
 
 class Ztv extends StatelessWidget {
@@ -36,41 +36,32 @@ class Ztv extends StatelessWidget {
   final String? _lans;
   final messengerKey = GlobalKey<ScaffoldMessengerState>();
 
-   Ztv(this._playlist, this._lans, {Key? key}) : super(key: key);
+  Ztv(this._playlist, this._lans, {Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    log(_TAG, 'build');
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          AppLocalizations.delegate
-        ],
-        supportedLocales: LOCALES,
-        localeResolutionCallback: (locale, supportedLocales) => supportedLocales
-            .firstWhere((element) => element.languageCode == locale?.languageCode, orElse: () => supportedLocales.first),
-        theme: ThemeData(
-          primarySwatch: MaterialColor(0XFFF7000F, colorCodes),
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        scaffoldMessengerKey: messengerKey,
-        home: _initHome(context, messengerKey));
-  }
+  Widget build(BuildContext context) => MaterialApp(
+      debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        AppLocalizations.delegate
+      ],
+      supportedLocales: LOCALES,
+      localeResolutionCallback: (locale, supportedLocales) => supportedLocales
+          .firstWhere((element) => element.languageCode == locale?.languageCode, orElse: () => supportedLocales.first),
+      theme: ThemeData(
+        primarySwatch: MaterialColor(0XFFF7000F, colorCodes),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      scaffoldMessengerKey: messengerKey,
+      home: _initHome(context, messengerKey));
 
   _initHome(BuildContext context, GlobalKey<ScaffoldMessengerState> messengerKey) {
-    // if (!_snackReady) _snack(context, messengerKey);
-    return MainWidget(MainBloc(),messengerKey);
+    return MainWidget(MainBloc(), messengerKey);
   }
 }
 
-//   var _lans;
-//   var _dataHolder;
-//   var _offset = 0.0;
-//   var _txtFieldTxt;
-//   String? _query;
 //   var _connectedToInet = true;
 //   var _uiState = UIState.MAIN;
 //   var _title = 'Player';

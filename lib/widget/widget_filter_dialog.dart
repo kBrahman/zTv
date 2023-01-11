@@ -108,9 +108,9 @@ class SpinnerAndTitle extends StatelessWidget {
               : 1
           : -1;
 
-    return e1.value == ANY_CATEGORY
+    return e1.value == ANY_CATEGORY || e2.value == 'XXX'
         ? -1
-        : e2.value == ANY_CATEGORY
+        : e2.value == ANY_CATEGORY || e1.value == 'XXX'
             ? 1
             : v1.compareTo(v2);
   }
