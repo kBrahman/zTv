@@ -64,8 +64,11 @@ class MainWidget extends StatelessWidget {
                         scale: data.scale,
                         child: TextButton(
                             style: ButtonStyle(backgroundColor: MaterialStateProperty.all(colorCodes[900])),
-                            onPressed: () async =>
-                                data.hasIPTV ? _myIPTV(context, false) : _mainBloc.cmdSink.add(Command.BUY_IPTV),
+                            onPressed: () => data.hasIPTV
+                                ? _myIPTV(context, false)
+                                : data.processing
+                                    ? null
+                                    : _mainBloc.cmdSink.add(Command.BUY_IPTV),
                             child: Text(data.hasIPTV ? l10n?.my_iptv ?? 'MY IPTV' : l10n?.buy_iptv ?? 'BUY IPTV',
                                 style: const TextStyle(color: Colors.white)))),
                     if (!data.hasIPTV)

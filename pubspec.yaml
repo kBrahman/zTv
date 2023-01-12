@@ -16,11 +16,10 @@ dependencies:
   cupertino_icons: ^1.0.2
   sqflite: ^2.2.0+3
   path: ^1.8.0
-  flutter_vlc_player: ^7.1.5
+  flutter_vlc_player: ^7.2.0
   in_app_purchase: ^3.1.1
   cloud_firestore: ^4.1.0
   google_sign_in: ^5.4.2
-  sign_in_with_apple: ^4.2.0
   shared_preferences: ^2.0.6
   flutter_signin_button: ^2.0.0
   flutter_localizations:

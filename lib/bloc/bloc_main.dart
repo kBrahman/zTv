@@ -64,7 +64,6 @@ class MainBloc extends BaseBloc {
             break;
           }
           yield data = data?.copyWith(processing: true);
-          _sp.setBool(PROCESSING, true);
           yield data = await _buyIptv(data, product!, cmd);
           break;
         case Command.MY_IPTV:
@@ -74,7 +73,7 @@ class MainBloc extends BaseBloc {
           log(_TAG, 'show buy, product=>$product');
           product ??= await _getProduct();
           if (product == null) yield null;
-          yield data = data?.copyWith(hasIPTV: data.hasIPTV);
+          yield data = data?.copyWith(hasIPTV: data.hasIPTV, processing: data.processing);
           break;
         case Command.ANIM:
           yield data = data?.copyWith(animate: true, scale: 2);
@@ -88,7 +87,7 @@ class MainBloc extends BaseBloc {
     log(_TAG, 'buy');
     try {
       login = await _googleSignIn();
-      if (login == null) throw 'sign in err';
+      if (login == null) return data?.copyWith(processing: false);
       log(_TAG, 'login=>$login');
       SharedPreferences.getInstance().then((sp) => sp.setString(LOGIN, login!));
       final doc = await FirebaseFirestore.instance.doc('user/$login').get();
@@ -110,6 +109,7 @@ class MainBloc extends BaseBloc {
   buy(String id, product) {
     final purchaseParam = PurchaseParam(productDetails: product.productDetails);
     _iapConnection.buyConsumable(purchaseParam: purchaseParam);
+    _sp.setBool(PROCESSING, true);
   }
 
   Future<String?> _googleSignIn() async {
