@@ -62,7 +62,6 @@ class Ztv extends StatelessWidget {
   }
 }
 
-//   var _connectedToInet = true;
 //   var _uiState = UIState.MAIN;
 //   var _title = 'Player';
 //   final stateStack = [UIState.MAIN];

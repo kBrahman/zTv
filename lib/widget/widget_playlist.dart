@@ -7,6 +7,7 @@ import 'package:ztv/bloc/bloc_playlist.dart';
 import 'package:ztv/model/playlist.dart';
 import 'package:ztv/widget/widget_channel.dart';
 import 'package:ztv/widget/widget_dynamic_bar.dart';
+// import 'package:ztv/widget/widget_dynamic_bar.dart';
 
 import '../bloc/bloc_search.dart';
 import '../model/channel.dart';

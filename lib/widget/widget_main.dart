@@ -87,8 +87,12 @@ class MainWidget extends StatelessWidget {
                           TextField(
                               controller: _mainBloc.txtCtr,
                               decoration: InputDecoration(hintText: l10n?.link_val ?? 'Video URL or IPTV playlist URL')),
-                          if (data?.linkInvalid == true)
-                            Text(l10n?.invalid_link ?? 'Invalid link', style: const TextStyle(color: Colors.red))
+                          ValueListenableBuilder<TextEditingValue>(
+                              valueListenable: _mainBloc.txtCtr,
+                              builder: (ctx, v, ch) =>
+                                  v.text.isNotEmpty && !v.text.startsWith(RegExp(r'https?://|/data/user/0/|rtmp://'))
+                                      ? Text(l10n?.invalid_link ?? 'Invalid link', style: const TextStyle(color: Colors.red))
+                                      : const SizedBox.shrink())
                         ])))
               ]);
             }),
@@ -156,8 +160,8 @@ class MainWidget extends StatelessWidget {
     if (link.isEmpty || link == BaseBloc.myIPTVLink) return;
     if (!BaseBloc.connectedToInet)
       BaseBloc.globalSink.add(GlobalEvent.NO_INET);
-    else if (!link.startsWith(RegExp(r'https://?|/data/user/0/|rtmp://')))
-      _mainBloc.cmdSink.add(Command.LINK_INVALID);
+    else if (!link.startsWith(RegExp(r'https?://|/data/user/0/|rtmp://')))
+      return;
     else if (_isPlaylistLink(link))
       Navigator.push(context, MaterialPageRoute(builder: (context) => PlaylistWidget(PlaylistBloc(link), link, true, false)));
     else {

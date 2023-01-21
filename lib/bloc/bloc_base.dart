@@ -16,13 +16,15 @@ import '../model/channel.dart';
 import '../model/isolate_model.dart';
 import '../util/util.dart';
 
-abstract class BaseBloc {
+abstract class BaseBloc<D,C> {
   static const _TAG = 'BaseBloc';
   static Future<IsolateRes>? myIptvIsoRes;
   static Future<IsolateRes>? isoRes;
   static final _globalController = StreamController<GlobalEvent>();
   static const _platform = MethodChannel('ztv.channel/app');
   static bool connectedToInet = true;
+  final ctr = StreamController<C>();
+  late Stream<D> stream;
 
   Stream<GlobalEvent> get globalStream => _globalController.stream;
 

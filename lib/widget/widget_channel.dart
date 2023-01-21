@@ -31,7 +31,7 @@ class ChannelWidget extends StatelessWidget {
           if ((await Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => PlayerWidget(bloc,_ch.title)))) == true) {
             Navigator.pop(context, _isTrial);
           } else
-            _playlistBlock.sink.add(null);
+            _playlistBlock.ctr.sink.add(null);
           bloc.securityOn();
           bloc.dispose();
         },

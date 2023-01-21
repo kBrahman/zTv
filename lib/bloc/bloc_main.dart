@@ -15,19 +15,17 @@ import '../util/in_app_purchase.dart';
 import '../util/util.dart';
 import 'bloc_base.dart';
 
-class MainBloc extends BaseBloc {
+class MainBloc extends BaseBloc<PurchaseData?,Command> {
   static const _TAG = 'MainBloc';
   static const SEC_PER_YEAR = 365 * Duration.secondsPerDay;
   static const PROCESSING = 'processing';
-  final _controller = StreamController<Command>();
   final txtCtr = TextEditingController();
   late final SharedPreferences _sp;
   final InAppPurchase _iapConnection = IAPConnection.instance;
   String? login;
 
-  Sink<Command> get cmdSink => _controller.sink;
+  Sink<Command> get cmdSink => ctr.sink;
 
-  late final Stream<PurchaseData?> stream;
 
   MainBloc() {
     late final StreamSubscription sub;
@@ -48,7 +46,7 @@ class MainBloc extends BaseBloc {
     }
     yield data;
     log(_TAG, 'yield=>$data');
-    await for (final cmd in _controller.stream) {
+    await for (final cmd in ctr.stream) {
       log(_TAG, 'cmd=>$cmd');
       switch (cmd) {
         case Command.PROCESSING:

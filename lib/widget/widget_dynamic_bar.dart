@@ -34,7 +34,7 @@ class DynamicBar extends StatelessWidget {
                         style: const TextStyle(color: Colors.white),
                         onChanged: (String txt) {
                           q = txt;
-                          _playlistBloc.sink
+                          _playlistBloc.ctr.sink
                               .add(FilterEvent(_currState?.currLan ?? ANY_LANGUAGE, _currState?.currCat ?? ANY_CATEGORY, txt));
                         },
                         cursorColor: Colors.white,
@@ -47,7 +47,7 @@ class DynamicBar extends StatelessWidget {
                 onPressed: () {
                   if (state.searchActive) {
                     q = '';
-                    _playlistBloc.sink
+                    _playlistBloc.ctr.sink
                         .add(FilterEvent(_currState?.currLan ?? ANY_LANGUAGE, _currState?.currCat ?? ANY_CATEGORY, ''));
                     _searchBloc.sink.add(SearchState(state.filterLans, state.filterCategories, false));
                   } else
@@ -61,7 +61,7 @@ class DynamicBar extends StatelessWidget {
                         context: context,
                         builder: (ctx) => FilterDialog(DialogBloc(), state.filterLans, state.filterCategories, _currState));
                     if (dState != null) _currState = dState;
-                    _playlistBloc.sink
+                    _playlistBloc.ctr.sink
                         .add(FilterEvent(_currState?.currLan ?? ANY_LANGUAGE, _currState?.currCat ?? ANY_CATEGORY, q ?? ''));
                     log(_TAG, 'dialog res=>$_currState');
                   })

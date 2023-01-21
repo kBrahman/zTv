@@ -36,7 +36,7 @@ class PlayerWidget extends StatelessWidget {
                             icon: const Icon(Icons.fullscreen),
                             onPressed: () => SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [])
                                 .then((value) => SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]))
-                                .then((_) => _playerBloc.sink.add(PlayerCmd.TOGGLE_SCREEN)))
+                                .then((_) => _playerBloc.ctr.sink.add(PlayerCmd.TOGGLE_SCREEN)))
                     ]),
               body: _getBody(data, context));
         });
@@ -44,7 +44,7 @@ class PlayerWidget extends StatelessWidget {
 
   void _onScreenTap() {
     log(_TAG, 'on screen tap');
-    _playerBloc.sink.add(PlayerCmd.TOGGLE_CONTROLS);
+    _playerBloc.ctr.sink.add(PlayerCmd.TOGGLE_CONTROLS);
   }
 
   _getBody(PlayerData data, BuildContext context) {
@@ -75,7 +75,7 @@ class PlayerWidget extends StatelessWidget {
                                   color: Colors.white, size: 48),
                               onPressed: () {
                                 log(_TAG, 'on pressed');
-                                _playerBloc.sink.add(PlayerCmd.PLAY_PAUSE);
+                                _playerBloc.ctr.sink.add(PlayerCmd.PLAY_PAUSE);
                               }))
                   ]))),
           if (ctr is VlcPlayerController && ctr.value.playingState != PlayingState.playing)
@@ -89,7 +89,7 @@ class PlayerWidget extends StatelessWidget {
                     onPressed: () => SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
                             overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom])
                         .then((value) => SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]))
-                        .then((value) => _playerBloc.sink.add(PlayerCmd.TOGGLE_SCREEN))))
+                        .then((value) => _playerBloc.ctr.sink.add(PlayerCmd.TOGGLE_SCREEN))))
         ]);
       case PlayerState.AUDIO:
         return Column(children: [
@@ -103,7 +103,7 @@ class PlayerWidget extends StatelessWidget {
               child: Row(children: [
                 IconButton(
                     icon: Icon((ctr as VideoPlayerController).value.isPlaying ? Icons.pause : Icons.play_arrow),
-                    onPressed: () => _playerBloc.sink.add(PlayerCmd.PLAY_PAUSE)),
+                    onPressed: () => _playerBloc.ctr.sink.add(PlayerCmd.PLAY_PAUSE)),
                 Expanded(
                     child: StreamBuilder<double>(
                         initialData: 0,

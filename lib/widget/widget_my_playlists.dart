@@ -45,7 +45,7 @@ class MyPlaylists extends StatelessWidget {
                                     padding: const EdgeInsets.all(4),
                                     child: Text(list[i].name, style: const TextStyle(fontSize: 20))),
                                 const Spacer(),
-                                IconButton(icon: const Icon(Icons.delete), onPressed: () => _bloc.sink.add(list[i].link))
+                                IconButton(icon: const Icon(Icons.delete), onPressed: () => _bloc.ctr.sink.add(list[i].link))
                               ])))));
             }));
   }

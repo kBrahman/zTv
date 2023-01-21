@@ -13,13 +13,11 @@ import '../model/data_player.dart';
 import '../util/util.dart';
 import 'bloc_base.dart';
 
-class PlayerBloc extends BaseBloc {
+class PlayerBloc extends BaseBloc<PlayerData,PlayerCmd?> {
   static const _TAG = 'PlayerBloc';
   static const defaultRatio = 1.28;
   VideoPlayerController? _vCtr;
   VlcPlayerController? _vlcCtr;
-  final _ctr = StreamController<PlayerCmd?>();
-  late final Stream<PlayerData> stream;
   _ControlVisibilityTimeout? _ctrVisibilityTimeout;
   late final bool _isAudio;
   final progressCtr = StreamController<double>();
@@ -27,8 +25,6 @@ class PlayerBloc extends BaseBloc {
   get progressStream => progressCtr.stream;
 
   get progressSink => progressCtr.sink;
-
-  get sink => _ctr.sink;
 
   PlayerBloc(String url, bool isTrial, title, logo) {
     if (url.startsWith('https://59c5c86e10038.streamlock.net')) {
@@ -77,13 +73,13 @@ class PlayerBloc extends BaseBloc {
       yield data = PlayerData(
           state: _isAudio ? PlayerState.AUDIO : PlayerState.VIDEO, vCtr: _vCtr, aspectRatio: aspectRatio, isTrial: isTrial);
       _vCtr?.play();
-      if (_isAudio) sink.add(PlayerCmd.TRACK_PROGRESS);
+      if (_isAudio) ctr.sink.add(PlayerCmd.TRACK_PROGRESS);
     }
     if (isTrial)
-      Future.delayed(const Duration(seconds: 3), () => sink.add(PlayerCmd.TRIAL_END));
+      Future.delayed(const Duration(seconds: 3), () => ctr.sink.add(PlayerCmd.TRIAL_END));
     else
       _saveToDB(url, title, logo);
-    await for (final cmd in _ctr.stream) {
+    await for (final cmd in ctr.stream) {
       log(_TAG, 'cmd=>$cmd');
       switch (cmd) {
         case PlayerCmd.TRIAL_END:
@@ -95,7 +91,7 @@ class PlayerBloc extends BaseBloc {
         case PlayerCmd.TOGGLE_CONTROLS:
           data = data.copyWith(showControls: !data.showControls);
           _ctrVisibilityTimeout?.cancelled = true;
-          if (data.showControls) _ctrVisibilityTimeout = _ControlVisibilityTimeout(sink);
+          if (data.showControls) _ctrVisibilityTimeout = _ControlVisibilityTimeout(ctr.sink);
           yield data;
           break;
         case PlayerCmd.PLAY_PAUSE:
@@ -105,7 +101,7 @@ class PlayerBloc extends BaseBloc {
         case PlayerCmd.TRACK_PROGRESS:
           Future.delayed(const Duration(milliseconds: 1600), () {
             progressSink.add(_vCtr!.value.position.inMilliseconds / _vCtr!.value.duration.inMilliseconds);
-            sink.add(PlayerCmd.TRACK_PROGRESS);
+            ctr.sink.add(PlayerCmd.TRACK_PROGRESS);
           });
           yield data;
           break;

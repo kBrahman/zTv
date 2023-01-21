@@ -8,12 +8,8 @@ import '../model/channel.dart';
 import '../model/isolate_res.dart';
 import '../util/util.dart';
 
-class PlaylistBloc extends BaseBloc {
+class PlaylistBloc extends BaseBloc<List<Channel>, FilterEvent?> {
   static const _TAG = 'PlaylistBloc';
-  final _controller = StreamController<FilterEvent?>();
-
-  Sink<FilterEvent?> get sink => _controller.sink;
-  late Stream<List<Channel>> stream;
 
   PlaylistBloc(link) {
     if (link != null) BaseBloc.isoRes = BaseBloc.loadChannels(link, null).catchError((e) => const IsolateRes([], {}, {}));
@@ -24,7 +20,7 @@ class PlaylistBloc extends BaseBloc {
     final list = (await (isMyIptv ? BaseBloc.myIptvIsoRes : BaseBloc.isoRes))!.channels;
     yield list;
     var event = FilterEvent(ANY_LANGUAGE, ANY_CATEGORY, '');
-    yield* _controller.stream.map((e) {
+    yield* ctr.stream.map((e) {
       if (e != null) event = e;
       return list
           .where((ch) =>
