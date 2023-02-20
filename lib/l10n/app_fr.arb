@@ -153,6 +153,17 @@
   "sign_in_err": "Impossible de se connecter, veuillez réessayer s'il vous plaît",
   "subs_expired": "Votre abonnement est expiré, achetez à nouveau s'il vous plaît",
   "purchase_err": "Impossible de terminer votre achat, réessayez plus tard s'il vous plaît",
-  "invalid_link": "Lien invalide"
-
+  "invalid_link": "Lien invalide",
+  "wo": "Wolof",
+  "sd": "Sindhi",
+  "ga": "Irlandais",
+  "eu": "Basque",
+  "my": "Birman",
+  "sw": "Swahili",
+  "om": "Oromo",
+  "fy": "Frison",
+  "cy": "Gallois",
+  "pap": "Papiamento",
+  "zza": "Zaza",
+  "tet": "Tétoum"
 }

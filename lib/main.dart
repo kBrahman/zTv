@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:ztv/bloc/bloc_base.dart';
-import 'package:ztv/widget/widget_main.dart';
+import 'package:ztv/widget/main_widget.dart';
 
 import 'bloc/bloc_main.dart';
 import 'l10n/locale.dart';
@@ -22,11 +22,10 @@ void main() async {
   String data = await rootBundle.loadString('assets/local.properties');
   final iterable = data.split('\n').where((element) => !element.startsWith('#') && element.isNotEmpty);
   final props = {for (var v in iterable) v.split('=')[0]: v.split('=')[1]};
-  final playlist = props['playlist'];
-  final lans = props['lans'];
-  BaseBloc.init(playlist, lans);
-  runApp(Ztv(playlist, lans));
-  log(TAG, 'main, list=>$playlist');
+  final channels = props['channels'];
+  final streams = props['streams'];
+  BaseBloc.init(channels, streams);
+  runApp(Ztv(channels, streams));
 }
 
 class Ztv extends StatelessWidget {
@@ -393,12 +392,6 @@ class Ztv extends StatelessWidget {
 //       _uiState = UIState.PLAYER;
 //       stateStack.add(_uiState);
 //     });
-//   }
-//
-//   void _onMain() {
-//     setState(() => _uiState = UIState.MAIN);
-//     animate(0);
-//     stateStack.removeRange(1, stateStack.length);
 //   }
 //
 //   void animate(count) => Future.delayed(const Duration(milliseconds: 250), () {

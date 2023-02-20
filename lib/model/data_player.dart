@@ -13,7 +13,7 @@ class PlayerData {
   const PlayerData(
       {this.state = PlayerState.LOADING,
       this.vCtr,
-      this.aspectRatio = PlayerBloc.defaultRatio,
+      this.aspectRatio = 1.28,
       this.fullscreen = false,
       this.showControls = false,
       this.pop = false,

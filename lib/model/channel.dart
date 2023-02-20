@@ -1,9 +1,15 @@
+// ignore_for_file: constant_identifier_names
+
+import 'package:ztv/util/util.dart';
+
 class Channel {
+  static const _TAG = 'Channel';
   final String url;
-  final String title;
+  final double as;
+  late final String title;
   final languages = <String>{};
-  var categories = <String>{};
+  final categories = <String>{};
   String? logo;
 
-  Channel(this.title, this.url);
+  Channel(this.url, this.as);
 }

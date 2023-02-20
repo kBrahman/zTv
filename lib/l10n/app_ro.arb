@@ -154,13 +154,17 @@
   "sign_in_err": "Nu m-am putut conecta, încercați din nou",
   "subs_expired": "Abonamentul dvs. a expirat, vă rugăm să cumpărați din nou",
   "purchase_err": "Nu s-a putut finaliza achiziția, încercați din nou mai târziu",
-  "invalid_link": "Link invalid"
-
-
-
-
-
-
-
-
+  "invalid_link": "Link invalid",
+  "wo": "Wolof",
+  "sd": "Sindhi",
+  "ga": "Irlandez",
+  "eu": "Bască",
+  "my": "Birmanez",
+  "sw": "Swahili",
+  "om": "Oromo",
+  "fy": "Frizonă",
+  "cy": "Galeză",
+  "pap": "Papiamento",
+  "zza": "Zaza",
+  "tet": "Tetum"
 }

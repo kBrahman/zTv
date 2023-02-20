@@ -36,7 +36,8 @@ class MainWidget extends StatelessWidget {
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const HistoryWidget()))),
           IconButton(
               icon: const Icon(Icons.featured_play_list, color: Colors.white),
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => MyPlaylists(MyPlaylistsBloc())))),
+              onPressed: () =>
+                  Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => MyPlaylists(MyPlaylistsBloc())))),
           IconButton(color: Colors.white, icon: const Icon(Icons.folder), onPressed: _browse)
         ]),
         body: StreamBuilder<PurchaseData?>(
@@ -157,16 +158,17 @@ class MainWidget extends StatelessWidget {
   Future<void> _play(BuildContext context) async {
     final link = _mainBloc.txtCtr.text;
     log(_TAG, 'play=>$link');
-    if (link.isEmpty || link == BaseBloc.myIPTVLink) return;
+    if (link.isEmpty || link == BaseBloc.myIPTVCannelsLink) return;
     if (!BaseBloc.connectedToInet)
       BaseBloc.globalSink.add(GlobalEvent.NO_INET);
     else if (!link.startsWith(RegExp(r'https?://|/data/user/0/|rtmp://')))
       return;
     else if (_isPlaylistLink(link))
-      Navigator.push(context, MaterialPageRoute(builder: (context) => PlaylistWidget(PlaylistBloc(link), link, true, false)));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => PlaylistWidget(PlaylistBloc(link), link, true, false)));
     else {
       final title = _title ?? _getTitle(link);
-      final bloc = PlayerBloc(link, false, title, null);
+      final bloc = PlayerBloc(link, false, title, null, 1.28);
       await Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerWidget(bloc, title)));
       bloc.dispose();
     }

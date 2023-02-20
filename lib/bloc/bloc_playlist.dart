@@ -17,8 +17,10 @@ class PlaylistBloc extends BaseBloc<List<Channel>, FilterEvent?> {
   }
 
   Stream<List<Channel>> _getStream(isMyIptv) async* {
-    final list = (await (isMyIptv ? BaseBloc.myIptvIsoRes : BaseBloc.isoRes))!.channels;
+    final list = (await (isMyIptv ? BaseBloc.myIptvIsoRes : BaseBloc.isoRes))!.channels.map((e) => e as Channel).toList();
+    log(_TAG, 'yielding list:$list');
     yield list;
+
     var event = FilterEvent(ANY_LANGUAGE, ANY_CATEGORY, '');
     yield* ctr.stream.map((e) {
       if (e != null) event = e;

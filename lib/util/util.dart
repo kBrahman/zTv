@@ -47,12 +47,14 @@ const GEORGIAN = 'Georgian';
 const GERMAN = 'German';
 const HEBREW = 'Hebrew';
 const HINDI = 'Hindi';
+const WOLOF = 'Wolof';
 const HUNGARIAN = 'Hungarian';
 const ICELANDIC = 'Icelandic';
 const INDONESIAN = 'Indonesian';
 const JAPANESE = 'Japanese';
 const ITALIAN = 'Italian';
 const JAVANESE = 'Javanese';
+const TETUM = 'Tetum';
 const KANNADA = 'Kannada';
 const KAZAKH = 'Kazakh';
 const KHMER = 'Khmer';
@@ -62,7 +64,16 @@ const KURDISH = 'Kurdish';
 const LAO = 'Lao';
 const LATVIAN = 'Latvian';
 const LITHUANIAN = 'Lithuanian';
+const BURMESE = 'Burmese';
+const SWAHILI = 'Swahili';
+const OROMO = 'Oromo';
+const FRISIAN = 'Frisian';
+const WELSH = 'Welsh';
+const PAPIAMENTO = 'Papiamento';
+const ZAZA = 'Zaza';
+const BASQUE = 'Basque';
 const LUXEMBOURGISH = 'Luxembourgish';
+const IRISH = 'Irish';
 const MACEDONIAN = 'Macedonian';
 const MALAY = 'Malay';
 const MALAYALAM = 'Malayalam';
@@ -73,6 +84,7 @@ const MONTENEGRIN = 'Montenegrin';
 const NEPALI = 'Nepali';
 const NORWEGIAN = 'Norwegian';
 const PASHTO = 'Pashto';
+const SINDHI = 'Sindhi';
 const PERSIAN = 'Persian';
 const POLISH = 'Polish';
 const PORTUGUESE = 'Portuguese';
@@ -156,6 +168,8 @@ String getLocalizedLanguage(String? s, AppLocalizations? of) {
     case null:
     case ANY_LANGUAGE:
       return of?.any_lan ?? ANY_LANGUAGE;
+    case WOLOF:
+      return of?.wo ?? ANY_LANGUAGE;
     case ODIA:
       return of?.or ?? s!;
     case MALDIVIAN:

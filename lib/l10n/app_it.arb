@@ -146,6 +146,17 @@
   "sign_in_err": "Impossibile accedere, riprova per favore",
   "subs_expired": "Il tuo abbonamento è scaduto, acquista di nuovo per favore",
   "purchase_err": "Impossibile completare l'acquisto, riprova più tardi",
-  "invalid_link": "Collegamento invalido"
-
+  "invalid_link": "Collegamento invalido",
+  "wo": "Volof",
+  "sd": "Sindhi",
+  "ga": "Irlandesi",
+  "eu": "Basco",
+  "my": "Birmano",
+  "sw": "Swahili",
+  "om": "Oromo",
+  "fy": "Frisone",
+  "cy": "Gallese",
+  "pap": "Papiamento",
+  "zza": "Zazza",
+  "tet": "Tetum"
 }

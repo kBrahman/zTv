@@ -1,7 +1,7 @@
 import 'channel.dart';
 
 class IsolateRes {
-  final List<Channel> channels;
+  final List<dynamic> channels;
   final Set<String> filterCategories;
   final Set<String> filterLans;
 

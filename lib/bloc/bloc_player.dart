@@ -13,9 +13,9 @@ import '../model/data_player.dart';
 import '../util/util.dart';
 import 'bloc_base.dart';
 
-class PlayerBloc extends BaseBloc<PlayerData,PlayerCmd?> {
+class PlayerBloc extends BaseBloc<PlayerData, PlayerCmd?> {
   static const _TAG = 'PlayerBloc';
-  static const defaultRatio = 1.28;
+  var defaultRatio = 1.28;
   VideoPlayerController? _vCtr;
   VlcPlayerController? _vlcCtr;
   _ControlVisibilityTimeout? _ctrVisibilityTimeout;
@@ -26,11 +26,12 @@ class PlayerBloc extends BaseBloc<PlayerData,PlayerCmd?> {
 
   get progressSink => progressCtr.sink;
 
-  PlayerBloc(String url, bool isTrial, title, logo) {
+  PlayerBloc(String url, bool isTrial, title, logo, double as) {
     if (url.startsWith('https://59c5c86e10038.streamlock.net')) {
       url = url.replaceFirst('59c5c86e10038.streamlock.net', 'panel.dattalive.com');
     }
     log(_TAG, 'url=>$url');
+    defaultRatio = as;
     _isAudio = _isAudioLink(url);
     stream = _getStream(url: url, title: title, logo: logo, delegate: _delegate(url), isTrial: isTrial);
   }
@@ -38,7 +39,8 @@ class PlayerBloc extends BaseBloc<PlayerData,PlayerCmd?> {
   bool _isAudioLink(String link) =>
       link.endsWith('.mp3') || link.endsWith('.opus') || link.endsWith('.flac') || link.endsWith('.ogg');
 
-  Stream<PlayerData> _getStream({required String url, title = '', String? logo, delegate = false, required bool isTrial}) async* {
+  Stream<PlayerData> _getStream(
+      {required String url, title = '', String? logo, delegate = false, required bool isTrial}) async* {
     PlayerData data;
     if (delegate) {
       log(_TAG, 'trying with VLC');
@@ -52,8 +54,6 @@ class PlayerBloc extends BaseBloc<PlayerData,PlayerCmd?> {
           return;
         } else if (_vlcCtr?.value.playingState == PlayingState.playing) {
           final aspectRatio = _vlcCtr?.value.aspectRatio == 0 ? defaultRatio : _vlcCtr?.value.aspectRatio;
-          // await Future.delayed(const Duration(seconds: 5));
-          log(_TAG, '5 end');
           yield data = data.copyWith(aspectRatio: aspectRatio, isTrial: isTrial);
           break;
         }

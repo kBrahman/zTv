@@ -147,5 +147,17 @@
   "sign_in_err": "No se pudo iniciar sesión, intente nuevamente por favor",
   "subs_expired": "Su suscripción ha caducado, compre de nuevo por favor",
   "purchase_err": "No se pudo completar su compra, inténtelo de nuevo más tarde por favor",
-  "invalid_link": "Enlace inválido"
+  "invalid_link": "Enlace inválido",
+  "wo": "Wolof",
+  "sd": "Sindhi",
+  "ga": "Irlandesa",
+  "eu": "Vasco",
+  "my": "Birmano",
+  "sw": "Swahili",
+  "om": "Oromo",
+  "fy": "Frisio",
+  "cy": "Galés",
+  "pap": "Papiamento",
+  "zza": "Zaza",
+  "tet": "Tetum"
 }

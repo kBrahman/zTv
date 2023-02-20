@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ztv/widget/widget_main.dart';
+import 'package:ztv/widget/main_widget.dart';
 
 import '../model/data_purchase.dart';
 import '../model/purchasable_product.dart';

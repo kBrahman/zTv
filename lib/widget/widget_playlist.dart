@@ -48,7 +48,6 @@ class PlaylistWidget extends StatelessWidget {
   }
 }
 
-//                               widget._info.filterCategory = cat;
 //                             }), () {
 //                       widget._info.filterLanguage = getLocalizedLanguage(ANY_LANGUAGE, AppLocalizations.of(context));
 //                       widget._info.filterCategory = getLocalizedCategory(ANY_CATEGORY, AppLocalizations.of(context));

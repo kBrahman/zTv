@@ -135,13 +135,17 @@
   "sign_in_err": "Não foi possível fazer login, tente novamente por favor",
   "subs_expired": "Sua assinatura expirou, compre novamente por favor",
   "purchase_err": "Não foi possível concluir sua compra, tente novamente mais tarde, por favor",
-  "invalid_link": "Link inválido"
-
-
-
-
-
-
-
-
+  "invalid_link": "Link inválido",
+  "wo": "Wolof",
+  "sd": "Sindi",
+  "ga": "Irlandês",
+  "eu": "Basco",
+  "my": "Birmanês",
+  "sw": "Suaíli",
+  "om": "Oromo",
+  "fy": "Frísio",
+  "cy": "Galês",
+  "pap": "Papiamento",
+  "zza": "Zaza",
+  "tet": "Tétum"
 }

@@ -146,13 +146,17 @@
   "sign_in_err": "Không thể đăng nhập, vui lòng thử lại",
   "subs_expired": "Đăng ký của bạn đã hết hạn, vui lòng mua lại",
   "purchase_err": "Không thể hoàn tất giao dịch mua của bạn, vui lòng thử lại sau",
-  "invalid_link": "Liên kết không hợp lệ"
-
-
-
-
-
-
-
-
+  "invalid_link": "Liên kết không hợp lệ",
+  "wo": "Chó Sói",
+  "sd": "Sindhi",
+  "ga": "Người Ireland",
+  "eu": "Xứ Basque",
+  "my": "Người Miến Điện",
+  "sw": "Tiếng Swahili",
+  "om": "Tiếng Oromo",
+  "fy": "Tiếng Frisia",
+  "cy": "Người Xứ Wales",
+  "pap": "Papiamento",
+  "zza": "Zaza",
+  "tet": "Tetum"
 }

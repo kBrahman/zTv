@@ -144,5 +144,17 @@
   "sign_in_err": "Tidak dapat masuk, harap coba lagi",
   "subs_expired": "Langganan Anda kedaluwarsa, tolong beli lagi",
   "purchase_err": "Tidak dapat menyelesaikan pembelian Anda, harap coba lagi nanti",
-  "invalid_link": "Tautan tidak valid"
+  "invalid_link": "Tautan tidak valid",
+  "wo": "Wolof",
+  "sd": "Sindhi",
+  "ga": "Orang Irlandia",
+  "eu": "Basque",
+  "my": "Birma",
+  "sw": "Swahili",
+  "om": "Oromo",
+  "fy": "Frisia",
+  "cy": "Welsh",
+  "pap": "Papiamento",
+  "zza": "Zaza",
+  "tet": "Tetum"
 }

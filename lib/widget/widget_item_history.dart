@@ -17,8 +17,8 @@ class HistoryItem extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         child: GestureDetector(
             onTap: () async {
-              final bloc = PlayerBloc(_url, false, _title, _logo);
-              await Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => PlayerWidget(bloc,_title)));
+              final bloc = PlayerBloc(_url, false, _title, _logo, 1.28);
+              await Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => PlayerWidget(bloc, _title)));
               bloc.dispose();
             },
             child: Row(children: [

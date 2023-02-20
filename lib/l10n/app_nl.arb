@@ -154,5 +154,17 @@
   "sign_in_err": "Kan niet inloggen, probeer het opnieuw",
   "subs_expired": "Uw abonnement is verlopen, koop opnieuw alstublieft",
   "purchase_err": "Kon uw aankoop niet voltooien, probeer het later opnieuw",
-  "invalid_link": "Ongeldige link"
+  "invalid_link": "Ongeldige link",
+  "wo": "Wolof",
+  "sd": "Sindhi",
+  "ga": "Iers",
+  "eu": "Baskisch",
+  "my": "Birmees",
+  "sw": "Swahili",
+  "om": "Oromo",
+  "fy": "Van Friesland Afkomstige",
+  "cy": "Wels",
+  "pap": "Papiamento",
+  "zza": "Zaza",
+  "tet": "Tetum"
 }

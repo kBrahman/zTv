@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ztv/bloc/bloc_base.dart';
 import 'package:ztv/bloc/bloc_playlist.dart';
-import 'package:ztv/widget/widget_main.dart';
+import 'package:ztv/widget/main_widget.dart';
 import 'package:ztv/widget/widget_player.dart';
 
 import '../bloc/bloc_player.dart';
@@ -27,7 +27,7 @@ class ChannelWidget extends StatelessWidget {
             BaseBloc.globalSink.add(GlobalEvent.NO_INET);
             return;
           }
-          final bloc = PlayerBloc(_ch.url, _isTrial, _ch.title, _ch.logo);
+          final bloc = PlayerBloc(_ch.url, _isTrial, _ch.title, _ch.logo, _ch.as);
           if ((await Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => PlayerWidget(bloc,_ch.title)))) == true) {
             Navigator.pop(context, _isTrial);
           } else

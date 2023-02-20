@@ -7,3 +7,10 @@ class IsolateModel {
 
   IsolateModel(this.chs, this.data);
 }
+
+class IsoModelJson {
+  final Map<String?, dynamic> cache;
+  final List<dynamic> data;
+
+  IsoModelJson(this.cache, this.data);
+}

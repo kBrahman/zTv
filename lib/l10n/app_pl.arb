@@ -152,13 +152,17 @@
   "sign_in_err": "Nie udało się zalogować, spróbuj ponownie",
   "subs_expired": "Twoja subskrypcja wygasła, kup ponownie, proszę",
   "purchase_err": "Nie można sfinalizować zakupu, spróbuj ponownie później",
-  "invalid_link": "Niepoprawny link"
-
-
-
-
-
-
-
-
+  "invalid_link": "Niepoprawny link",
+  "wo": "Wolof",
+  "sd": "Sindhi",
+  "ga": "Irlandczyk",
+  "eu": "Baskijski",
+  "my": "Birmańczyk",
+  "sw": "Suahili",
+  "om": "Oromo",
+  "fy": "Fryzyjski",
+  "cy": "Walijski",
+  "pap": "Papiamento",
+  "zza": "Zaza",
+  "tet": "Tetum"
 }
