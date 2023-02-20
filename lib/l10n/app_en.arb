@@ -154,5 +154,17 @@
   "sign_in_err": "Could not sign in, try again please",
   "subs_expired": "Your subscription is expired, buy again please",
   "purchase_err": "Could not complete your purchase, try again later please",
-  "invalid_link": "Invalid link"
+  "invalid_link": "Invalid link",
+  "wo": "Wolof",
+  "sd": "Sindhi",
+  "ga": "Irish",
+  "eu": "Basque",
+  "my": "Burmese",
+  "sw": "Swahili",
+  "om": "Oromo",
+  "fy": "Frisian",
+  "cy": "Welsh",
+  "pap": "Papiamento",
+  "zza": "Zaza",
+  "tet": "Tetum"
 }
