@@ -157,7 +157,7 @@ const COLUMN_LINK = 'link';
 const COLUMN_LOGO = 'logo';
 const COLUMN_TIME = 'time';
 const COLUMN_ID = 'id';
-const CHANNEL_COUNT = "6000";
+const CHANNEL_COUNT = "7000";
 Future<Database>? _dbFuture;
 Future<SharedPreferences>? _spFuture;
 
