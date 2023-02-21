@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ztv/widget/main_widget.dart';
 
@@ -15,7 +16,7 @@ import '../util/in_app_purchase.dart';
 import '../util/util.dart';
 import 'bloc_base.dart';
 
-class MainBloc extends BaseBloc<PurchaseData?,Command> {
+class MainBloc extends BaseBloc<PurchaseData?, Command> {
   static const _TAG = 'MainBloc';
   static const SEC_PER_YEAR = 365 * Duration.secondsPerDay;
   static const PROCESSING = 'processing';
@@ -25,7 +26,6 @@ class MainBloc extends BaseBloc<PurchaseData?,Command> {
   String? login;
 
   Sink<Command> get cmdSink => ctr.sink;
-
 
   MainBloc() {
     late final StreamSubscription sub;
@@ -106,6 +106,7 @@ class MainBloc extends BaseBloc<PurchaseData?,Command> {
 
   buy(String id, product) {
     final purchaseParam = PurchaseParam(productDetails: product.productDetails);
+    InAppPurchase.instance.restorePurchases();
     _iapConnection.buyConsumable(purchaseParam: purchaseParam);
     _sp.setBool(PROCESSING, true);
   }
@@ -136,8 +137,11 @@ class MainBloc extends BaseBloc<PurchaseData?,Command> {
         cmdSink.add(Command.MY_IPTV);
       });
       _sp.remove(PROCESSING);
+    } else if (purchaseDetails.status == PurchaseStatus.restored) {
+      InAppPurchase.instance.getPlatformAddition<InAppPurchaseAndroidPlatformAddition>().consumePurchase(purchaseDetails);
+      log(_TAG, 'consumed purchase');
     } else if (purchaseDetails.status == PurchaseStatus.error || purchaseDetails.status == PurchaseStatus.canceled) {
-      log(_TAG, 'pErr=>${purchaseDetails.error?.code}');
+      log(_TAG, 'pErr=>${purchaseDetails.error}');
       if (purchaseDetails.error?.code != 'purchase_error') BaseBloc.globalSink.add(GlobalEvent.PURCHASE_ERR);
       cmdSink.add(Command.SHOW_BUY_IPTV);
       _sp.remove(PROCESSING);
@@ -153,8 +157,8 @@ class MainBloc extends BaseBloc<PurchaseData?,Command> {
   Future<PurchasableProduct?> _getProduct() async {
     final ProductDetailsResponse? response;
     if (!(await _iapConnection.isAvailable()) ||
-        (response = await _iapConnection.queryProductDetails({'ztv_channels', 'ztv_channels_product'})).notFoundIDs.length == 2)
-      return null;
+        (response = await _iapConnection.queryProductDetails({'ztv_channels', 'ztv_channels_product'})).notFoundIDs.length ==
+            2) return null;
     return response.productDetails.map((e) => PurchasableProduct(e)).toList(growable: false).first;
   }
 }
