@@ -71,7 +71,7 @@ class MainBloc extends BaseBloc<PurchaseData?, Command> {
           log(_TAG, 'show buy, product=>$product');
           product ??= await _getProduct();
           if (product == null) yield null;
-          yield data = data?.copyWith(hasIPTV: data.hasIPTV, processing: data.processing);
+          yield data = data?.copyWith(hasIPTV: data.hasIPTV, processing: false);
           break;
         case Command.ANIM:
           yield data = data?.copyWith(animate: true, scale: 2);
